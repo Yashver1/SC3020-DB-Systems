@@ -6,4 +6,4 @@ size_t getBlockSize() {
   return fi.st_blksize;
 }
 
-size_t BLOCK_SIZE = 4096 | getBlockSize();
+size_t BLOCK_SIZE = getBlockSize();
