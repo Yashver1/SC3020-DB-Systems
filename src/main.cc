@@ -4,14 +4,27 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 #include "block.h"
 
 int main() {
-  Record rec{};
-  RecordHeader h{};
-  std::cout << sizeof(h) << std::endl;
-  std::cout << sizeof(rec) << std::endl;
-  std::cout << rec << std::endl;
+  std::fstream file{"../games.txt", std::ios::in};
+  std::vector<std::string> buffer{};
+
+  if (!file.is_open()) {
+    return 1;
+  }
+
+  std::string temp{};
+  while (std::getline(file, temp)) {
+    buffer.push_back(temp);
+  }
+
+  print(buffer[0]);
+  print(buffer[1]);
+
+  file.close();
   return 0;
 }

@@ -3,7 +3,12 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-using byte = unsigned char;
+#define print(x)                 \
+  {                              \
+    std::cout << x << std::endl; \
+  }
+
+using Byte = unsigned char;
 
 extern size_t BLOCK_SIZE;
 extern size_t RECORD_SIZE;

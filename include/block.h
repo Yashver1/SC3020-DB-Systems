@@ -8,7 +8,7 @@
 #include "utility.h"
 
 class BlockView {
-  std::vector<byte> data;
+  std::vector<Byte> data;
   unsigned currOffset;
   // just to track currentOffset for debugging purp
   unsigned numOfRecords;

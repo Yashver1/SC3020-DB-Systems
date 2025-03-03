@@ -9,7 +9,7 @@
 struct RecordHeader {
   unsigned long timestamp;
   unsigned offset;
-  byte schemaKey;
+  Byte schemaKey;
   RecordHeader() : timestamp(0), offset(0), schemaKey(1) {};
 };
 
@@ -19,10 +19,10 @@ struct Record {
   float FG_PCT_HOME;
   float FT_PCT_HOME;
   float FG3_PCT_HOME;
-  std::array<byte, 3> GAME_DATE_EST;
-  byte AST_HOME;
-  byte REB_HOME;
-  byte PTS_HOME;
+  std::array<Byte, 3> GAME_DATE_EST;
+  Byte AST_HOME;
+  Byte REB_HOME;
+  Byte PTS_HOME;
   bool HOME_TEAM_WINS;
 
   Record()
@@ -31,7 +31,7 @@ struct Record {
         FG_PCT_HOME{0.0f},
         FT_PCT_HOME{0.0f},
         FG3_PCT_HOME{0.0f},
-        GAME_DATE_EST{std::array<byte, 3>{}},
+        GAME_DATE_EST{std::array<Byte, 3>{}},
         AST_HOME{0},
         REB_HOME{0},
         PTS_HOME{0},

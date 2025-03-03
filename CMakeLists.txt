@@ -7,5 +7,7 @@ add_library(utility src/utility.cc include/utility.h)
 target_include_directories(block PUBLIC include)
 target_include_directories(utility PUBLIC include)
 
+add_subdirectory(test)
+
 add_executable(main src/main.cc)
 target_link_libraries(main block utility)
