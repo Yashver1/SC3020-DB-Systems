@@ -5,7 +5,7 @@
 
 #include <string>
 #include <vector>
-#define print_vector(x)                        \
+#define debug_print_vector(x)                  \
   {                                            \
     std::cout << "[";                          \
     for (int i = 0; i < x.size(); ++i) {       \
@@ -15,7 +15,7 @@
     std::cout << "]" << std::endl;             \
   }
 
-#define print(x)                 \
+#define debug_print(x)           \
   {                              \
     std::cout << x << std::endl; \
   }
