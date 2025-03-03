@@ -1,18 +1,18 @@
 #ifndef INDEXER_H
 #define INDEXER_H
 
+#include "block.h"
 #include "bplustree.h"
 #include "record.h"
-#include "block.h"
 
 class Indexer {
-    bplustree tree;
-    BlockView &block;
+  bplustree tree;
+  BlockView &block;
 
-public:
-    Indexer(BlockView &block);
-    void buildIndex(const std::string &filename);
-    Record searchByFGPctHome(float fgPctHome);
+ public:
+  Indexer(BlockView &block);
+  void buildIndex(const std::string &filename);
+  Record searchByFGPctHome(float fgPctHome);
 };
 
 #endif
