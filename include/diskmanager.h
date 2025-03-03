@@ -1,0 +1,83 @@
+#ifndef DISKMANAGER_H
+#define DISKMANAGER_H
+
+#include<fstream>
+#include<unordered_map>
+#include<string>
+#include<vector>
+#include<queue>
+#include"utility.h"
+#include"record.h"
+#include<array>
+#include<iostream>
+#include<type_traits>
+#include<cassert>
+#include<cstring>
+class DiskManager{  
+public:
+    DiskManager(){}
+    void txtToBinary(std::fstream &input,bool header){
+        std::fstream outputFile{"data.bin", outputFile.trunc | outputFile.out | outputFile.binary};
+        std::queue<std::string> buffer{};
+        std::string temp{};
+
+        while(std::getline(input,temp)){
+            buffer.push(temp);
+        }
+
+        if(header){
+            std::string headers = buffer.front();
+            buffer.pop();
+        }
+
+        unsigned numPerBlocks = BLOCK_SIZE/RECORD_SIZE;
+        unsigned offset{};
+        while(buffer.size() > 0){
+            for(unsigned i = 0 ; i < numPerBlocks && buffer.size() > 0 ; ++i){
+                std::string currLine = buffer.front();
+                buffer.pop();
+                std::vector<std::string> currFields = split(currLine,"\t");
+                unsigned diskOffset = offset*BLOCK_SIZE + i*RECORD_SIZE;
+
+                for(std::string &field : currFields){
+                    if(field.size() == 0){
+                        field = '0';
+                    }
+                }
+
+                Record currRecord{ diskOffset,
+                    currFields[0],
+                    currFields[1],
+                    currFields[2],
+                    currFields[3],
+                    currFields[4],
+                    currFields[5],
+                    currFields[6],
+                    currFields[7],
+                    currFields[8],
+                };
+
+                
+                std::array<Record,1> recordBuffer;
+                std::memcpy(&recordBuffer,&currRecord,sizeof(Record));
+                outputFile.write(reinterpret_cast<char*>(&recordBuffer), sizeof(Record));
+            }
+            
+            offset++;
+        }
+
+
+        outputFile.close();
+
+
+           
+
+    }
+
+    void makeIndex(){
+
+    }
+
+};
+
+#endif
