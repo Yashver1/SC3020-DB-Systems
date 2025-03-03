@@ -74,7 +74,7 @@ void bplustree::splitNode(bplustreeNode &node, unsigned offset){
     block.saveAt(newOffset);
     block.saveAt(offset);
 
-    //to be continue: The root split case
+    //to be continue: The root split case...
 }
 
 void bplustree::printTree(unsigned offset, int level){
