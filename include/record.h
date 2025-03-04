@@ -110,12 +110,12 @@ struct Record {
 
 class RecordView {
   Record data;
-  BlockView &block;
+  // BlockView &block;
   unsigned sizeOfRecord;
   unsigned offset;
 
  public:
-  RecordView(unsigned offset, BlockView &block);
+  RecordView(unsigned offset);
 
   Record &operator[](std::size_t index);
   const Record &operator[](std::size_t index) const;

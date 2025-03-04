@@ -7,26 +7,31 @@
 #include "errors.h"
 #include "utility.h"
 
+extern const size_t RECORD_SIZE;
+
 class BlockView {
-  std::vector<Byte> data;
+  std::vector<Byte> binaryData;
   unsigned currOffset;
-  // just to track currentOffset for debugging purp
   unsigned numOfRecords;
+  unsigned blkSize;
 
  public:
   std::fstream &openFile;
+  //! file should be in binary,in,out for non truncated random access writing
+  //! and reading
 
   BlockView(std::fstream &openFile, unsigned offset)
-      : data(BLOCK_SIZE),
+      : binaryData(BLOCK_SIZE),
         currOffset(offset),
-        numOfRecords(0),
+        numOfRecords(BLOCK_SIZE / RECORD_SIZE),
+        blkSize(BLOCK_SIZE),
         openFile(openFile) {
-    // use load method
-    throw NotImplemented();
+    loadAt(offset);
   }
 
-  void loadAt(unsigned offset);
-  void saveAt(unsigned offest);
+  std::vector<Byte> data() { return this->binaryData; }
+  void loadAt(unsigned blkOffset);
+  void saveAt(unsigned blkOffset, std::vector<Byte> inputData);
   void next();
 };
 

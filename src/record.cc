@@ -1,7 +1,6 @@
 #include "record.h"
 
-RecordView::RecordView(unsigned offset, BlockView& block)
-    : offset(offset), block(block) {
+RecordView::RecordView(unsigned offset) : offset(offset) {
   throw NotImplemented();
 }
 

@@ -21,4 +21,4 @@ std::vector<std::string> split(std::string input, std::string del) {
   return tokens;
 }
 
-size_t BLOCK_SIZE = getBlockSize();
+const size_t BLOCK_SIZE = getBlockSize();

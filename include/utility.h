@@ -22,7 +22,7 @@
 
 using Byte = unsigned char;
 
-extern size_t BLOCK_SIZE;
+extern const size_t BLOCK_SIZE;
 
 size_t getBlockSize();
 

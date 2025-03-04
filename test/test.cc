@@ -1,4 +1,5 @@
 #define CATCH_CONFIG_MAIN
+
 #include <diskmanager.h>
 
 #include <array>
@@ -9,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "block.h"
 #include "catch2/catch.hpp"
 #include "record.h"
 #include "utility.h"
@@ -77,12 +79,28 @@ TEST_CASE("Memory Tests") {
   REQUIRE(rec1 == rec2);
 }
 
-TEST_CASE("Test Binary File") {
+TEST_CASE("Test Vector vs Array byte parsing") {
   fstream inputFile{"data.bin", inputFile.binary | inputFile.in};
   fstream logFile{"log.txt", logFile.out | logFile.trunc};
   std::array<Record, 1> buffer{};
-  while (inputFile.peek() != EOF) {
-    inputFile.read(reinterpret_cast<char*>(&buffer), sizeof(Record));
-    logFile << buffer[0];
-  };
+  std::vector<Byte> buffer2(RECORD_SIZE);
+
+  inputFile.read(reinterpret_cast<char*>(&buffer), sizeof(Record));
+  inputFile.seekg(-sizeof(Record), inputFile.cur);
+  inputFile.read(reinterpret_cast<char*>(buffer2.data()), sizeof(Record));
+  REQUIRE(memcmp(buffer.data(), buffer2.data(), sizeof(Record)) == 0);
+}
+
+TEST_CASE("Block View Functions") {
+  Record emptyRecord{};
+  debug_print("Before: " << emptyRecord);
+  fstream inputFile{"data.bin",
+                    inputFile.binary | inputFile.in | inputFile.out};
+
+  BlockView blockCursor{inputFile, 0};
+  blockCursor.loadAt(2);
+  std::vector<Byte> currentBytes = blockCursor.data();
+  memcpy(&emptyRecord, currentBytes.data(), sizeof(Record));
+
+  debug_print("After: " << emptyRecord);
 }

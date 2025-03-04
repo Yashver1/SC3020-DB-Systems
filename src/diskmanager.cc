@@ -29,6 +29,7 @@ void DiskManager::txtToBinary(std::fstream &input, bool header) {
   }
 
   unsigned numPerBlocks = BLOCK_SIZE / RECORD_SIZE;
+  unsigned remaining = BLOCK_SIZE - numPerBlocks * RECORD_SIZE;
   unsigned offset{};
   while (buffer.size() > 0) {
     for (unsigned i = 0; i < numPerBlocks && buffer.size() > 0; ++i) {
@@ -53,6 +54,10 @@ void DiskManager::txtToBinary(std::fstream &input, bool header) {
       std::memcpy(&recordBuffer, &currRecord, sizeof(Record));
       outputFile.write(reinterpret_cast<char *>(&recordBuffer), sizeof(Record));
     }
+    //! impt step is after writing records zero out remaning records and seek to
+    //! start of nextblk
+    std::vector<Byte> zeroedBuffer(remaining, 0);
+    outputFile.write(reinterpret_cast<char *>(zeroedBuffer.data()), remaining);
 
     offset++;
   }
