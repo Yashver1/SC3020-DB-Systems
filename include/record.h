@@ -70,11 +70,11 @@ struct Record {
          Byte ptsHome, float fgPctHome, float ftPctHome, float fg3PctHome,
          Byte astHome, Byte rebHome, Byte homeTeamWins)
       : Header(RecordHeader{offset}),
-        GAME_DATE_EST(gameDateEst),
         TEAM_ID_HOME(teamIdHome),
         FG_PCT_HOME(fgPctHome),
         FT_PCT_HOME(ftPctHome),
         FG3_PCT_HOME(fg3PctHome),
+        GAME_DATE_EST(gameDateEst),
         AST_HOME(astHome),
         REB_HOME(rebHome),
         PTS_HOME(ptsHome),
@@ -110,16 +110,18 @@ struct Record {
 
 class RecordView {
   Record data;
-  // BlockView &block;
+  BlockView block;
   unsigned sizeOfRecord;
-  unsigned offset;
 
  public:
-  RecordView(unsigned offset);
+  unsigned inBlkOffset;
+
+  RecordView(unsigned inBlkOffset, std::fstream &inputFile,
+             unsigned blkOffset = 0);
 
   Record &operator[](std::size_t index);
   const Record &operator[](std::size_t index) const;
-  void updateBlock(unsigned offset);
+  void updateBlkOffset(unsigned blkOffset);
 };
 
 extern const size_t RECORD_SIZE;

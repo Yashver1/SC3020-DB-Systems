@@ -11,22 +11,22 @@ extern const size_t RECORD_SIZE;
 
 class BlockView {
   std::vector<Byte> binaryData;
-  unsigned currOffset;
-  unsigned numOfRecords;
-  unsigned blkSize;
 
  public:
+  unsigned numOfRecords;
+  unsigned blkSize;
+  unsigned currBlkOffset;
   std::fstream &openFile;
   //! file should be in binary,in,out for non truncated random access writing
   //! and reading
 
-  BlockView(std::fstream &openFile, unsigned offset)
+  BlockView(std::fstream &openFile, unsigned blkOffset)
       : binaryData(BLOCK_SIZE),
-        currOffset(offset),
+        currBlkOffset(blkOffset),
         numOfRecords(BLOCK_SIZE / RECORD_SIZE),
         blkSize(BLOCK_SIZE),
         openFile(openFile) {
-    loadAt(offset);
+    loadAt(blkOffset);
   }
 
   std::vector<Byte> data() { return this->binaryData; }
