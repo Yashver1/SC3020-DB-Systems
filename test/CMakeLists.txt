@@ -14,4 +14,4 @@ FetchContent_MakeAvailable(catch)
 
 add_executable(test test.cc)
 target_include_directories(test PUBLIC include)
-target_link_libraries(test PRIVATE Catch2::Catch2 block utility disk record)
+target_link_libraries( test PRIVATE record Catch2::Catch2 block utility disk )

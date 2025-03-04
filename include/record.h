@@ -3,41 +3,35 @@
 #include <array>
 #include <iostream>
 #include <string>
-
-#include "block.h"
+#include <cstring>
 #include "utility.h"
+#include "block.h"
 
 struct RecordHeader {
   // unsigned long timestamp;
   unsigned offset;
   // Byte schemaKey;
-  RecordHeader(unsigned offset) : offset(offset) {};
+  RecordHeader(unsigned offset) : offset(offset){};
 };
 
 struct Record {
-  RecordHeader Header;                // 4
-  unsigned TEAM_ID_HOME;              // 4
-  float FG_PCT_HOME;                  // 4
-  float FT_PCT_HOME;                  // 4
-  float FG3_PCT_HOME;                 // 4
-  std::array<Byte, 3> GAME_DATE_EST;  // 3
-  Byte AST_HOME;                      // 1
-  Byte REB_HOME;                      // 1
-  Byte PTS_HOME;                      // 1
-  Byte HOME_TEAM_WINS;                // 1
+  RecordHeader Header;               // 4
+  unsigned TEAM_ID_HOME;             // 4
+  float FG_PCT_HOME;                 // 4
+  float FT_PCT_HOME;                 // 4
+  float FG3_PCT_HOME;                // 4
+  std::array<Byte, 3> GAME_DATE_EST; // 3
+  Byte AST_HOME;                     // 1
+  Byte REB_HOME;                     // 1
+  Byte PTS_HOME;                     // 1
+  Byte HOME_TEAM_WINS;               // 1
   // 1 byte padding
 
   Record()
-      : Header{RecordHeader{0}},
-        TEAM_ID_HOME{0},
-        FG_PCT_HOME{0.0f},
-        FT_PCT_HOME{0.0f},
-        FG3_PCT_HOME{0.0f},
-        GAME_DATE_EST{std::array<Byte, 3>{}},
-        AST_HOME{0},
-        REB_HOME{0},
-        PTS_HOME{0},
-        HOME_TEAM_WINS{false} {}
+      : Header{RecordHeader{0}}, TEAM_ID_HOME{0}, FG_PCT_HOME{0.0f},
+        FT_PCT_HOME{0.0f}, FG3_PCT_HOME{0.0f},
+        GAME_DATE_EST{std::array<Byte, 3>{}}, AST_HOME{0}, REB_HOME{0},
+        PTS_HOME{0}, HOME_TEAM_WINS{false} {}
 
   Record(unsigned offset, std::string gameDateEst, std::string teamIdHome,
          std::string ptsHome, std::string fgPctHome, std::string ftPctHome,
@@ -69,16 +63,10 @@ struct Record {
   Record(unsigned offset, std::array<Byte, 3> gameDateEst, unsigned teamIdHome,
          Byte ptsHome, float fgPctHome, float ftPctHome, float fg3PctHome,
          Byte astHome, Byte rebHome, Byte homeTeamWins)
-      : Header(RecordHeader{offset}),
-        TEAM_ID_HOME(teamIdHome),
-        FG_PCT_HOME(fgPctHome),
-        FT_PCT_HOME(ftPctHome),
-        FG3_PCT_HOME(fg3PctHome),
-        GAME_DATE_EST(gameDateEst),
-        AST_HOME(astHome),
-        REB_HOME(rebHome),
-        PTS_HOME(ptsHome),
-        HOME_TEAM_WINS(homeTeamWins) {}
+      : Header(RecordHeader{offset}), TEAM_ID_HOME(teamIdHome),
+        FG_PCT_HOME(fgPctHome), FT_PCT_HOME(ftPctHome),
+        FG3_PCT_HOME(fg3PctHome), GAME_DATE_EST(gameDateEst), AST_HOME(astHome),
+        REB_HOME(rebHome), PTS_HOME(ptsHome), HOME_TEAM_WINS(homeTeamWins) {}
 
   inline friend std::ostream &operator<<(std::ostream &os,
                                          const Record &record) {
@@ -108,22 +96,63 @@ struct Record {
   }
 };
 
+
+
+
 class RecordView {
+ public:
+  class ProxyRecord {
+    public:
+    RecordView &parent;
+    size_t index;
+    ProxyRecord(RecordView &p, size_t index) : parent(p), index(index){};
+
+    operator Record() const {
+      std::vector<Byte> temp;
+      temp.resize(parent.sizeOfRecord);
+      for (unsigned i = 0; i < parent.sizeOfRecord; ++i) {
+        temp[i] = parent.block[i + index * parent.sizeOfRecord];
+        
+      }
+      Record newRecord{};
+      std::memcpy(&newRecord,temp.data(),sizeof(Record));
+      return newRecord;
+    }
+
+    //! current allocations are not very efficient
+    ProxyRecord &operator=(Record rec) {
+      std::vector<Byte> temp;
+      temp.resize(parent.sizeOfRecord);
+      std::memcpy(temp.data(), &rec, sizeof(Record));
+      for(unsigned i = 0; i < parent.sizeOfRecord; ++i){
+        parent.block[i+ index * parent.sizeOfRecord] = temp[i];
+        //! this will cause an allocation on each due to parent overload
+      }
+      return *this;
+    }
+  };
+
+  unsigned sizeOfRecord;
+  unsigned numOfRecords;
   Record data;
   BlockView block;
-  unsigned sizeOfRecord;
 
- public:
-  unsigned inBlkOffset;
 
-  RecordView(unsigned inBlkOffset, std::fstream &inputFile,
+  RecordView(std::fstream &inputFile,
              unsigned blkOffset = 0);
 
-  Record &operator[](std::size_t index);
-  const Record &operator[](std::size_t index) const;
+  ProxyRecord operator[](std::size_t index){
+    unsigned maxNumOfRecords = this->block.blkSize / this->sizeOfRecord;
+    if (index >= maxNumOfRecords) {
+      throw std::out_of_range("access exceeds block range");
+    }
+  
+    return ProxyRecord(*this,index);
+
+  };
   void updateBlkOffset(unsigned blkOffset);
 };
 
 extern const size_t RECORD_SIZE;
 
-#endif  // !RECORD_H
+#endif // !RECORD_H

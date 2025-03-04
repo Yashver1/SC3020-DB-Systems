@@ -9,11 +9,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
 #include "block.h"
 #include "catch2/catch.hpp"
 #include "record.h"
 #include "utility.h"
+
 using namespace std;
 
 TEST_CASE("Block Size Test") { REQUIRE(BLOCK_SIZE != 0); }
@@ -56,16 +56,16 @@ TEST_CASE("Utility Tests") {
   REQUIRE(splitLine == split(line, "\t"));
 }
 
-// TEST_CASE("Disk Manager Tests") {
-//   fstream file{"games.txt", file.in};
+TEST_CASE("Disk Manager Tests") {
+  fstream file{"games.txt", file.in};
 
-//   if (!file.is_open()) {
-//     std::cerr << "File not Open";
-//   }
+  if (!file.is_open()) {
+    std::cerr << "File not Open";
+  }
 
-//   DiskManager disk{};
-//   disk.txtToBinary(file, true);
-// }
+  DiskManager disk{};
+  disk.txtToBinary(file, true);
+}
 
 TEST_CASE("Memory Tests") {
   // Testing allocations as bytes is okay
@@ -91,28 +91,69 @@ TEST_CASE("Test Vector vs Array byte parsing") {
   REQUIRE(memcmp(buffer.data(), buffer2.data(), sizeof(Record)) == 0);
 }
 
-TEST_CASE("Block View Functions") {
-  Record emptyRecord{};
+// TEST_CASE("Block View Functions") {
+//   Record emptyRecord{};
 
-  debug_print("Before: " << emptyRecord);
-  fstream inputFile{"data.bin",
-                    inputFile.binary | inputFile.in | inputFile.out};
-  BlockView blockCursor{inputFile, 0};
-  blockCursor.next();
-  std::vector<Byte> currentBytes = blockCursor.data();
-  memcpy(&emptyRecord, currentBytes.data(), sizeof(Record));
+//   debug_print("Before: " << emptyRecord);
+//   fstream inputFile{"data.bin",
+//                     inputFile.binary | inputFile.in | inputFile.out};
+//   BlockView blockCursor{inputFile, 0};
+//   std::vector<Byte> currentBytes = blockCursor.data();
+//   memcpy(&emptyRecord, currentBytes.data(), sizeof(Record));
 
-  debug_print("After: " << emptyRecord);
+//   debug_print("After: " << emptyRecord);
 
-  blockCursor.next();
-  currentBytes = blockCursor.data();
-  memcpy(&emptyRecord, currentBytes.data(), sizeof(Record));
+//   blockCursor.next();
+//   currentBytes = blockCursor.data();
+//   memcpy(&emptyRecord, currentBytes.data(), sizeof(Record));
 
-  debug_print("After: " << emptyRecord);
+//   debug_print("After: " << emptyRecord);
 
-  blockCursor.next();
-  currentBytes = blockCursor.data();
-  memcpy(&emptyRecord, currentBytes.data(), sizeof(Record));
+//   blockCursor.next();
+//   currentBytes = blockCursor.data();
+//   memcpy(&emptyRecord, currentBytes.data(), sizeof(Record));
 
-  debug_print("After: " << emptyRecord);
+//   debug_print("After: " << emptyRecord);
+//   blockCursor.loadAt(3);
+//   std::vector<Byte> secondBytes;
+//   secondBytes.resize(RECORD_SIZE);
+//   for(int i = 0 ; i < RECORD_SIZE; ++i){
+//     secondBytes[i] = blockCursor[i];
+//   }
+//   memcpy(&emptyRecord, secondBytes.data(), sizeof(Record));
+//   debug_print("After: " << emptyRecord);
+
+//   std::vector<Byte> thirdBytes(RECORD_SIZE,1);
+//   for(int i = 0; i < RECORD_SIZE; ++i){
+//     blockCursor[i] = thirdBytes[i];
+//   }
+
+//   std::vector<Byte> fourthBytes(RECORD_SIZE,5);
+//   for(int i = 0 ; i < RECORD_SIZE; ++i){
+//     fourthBytes[i] = blockCursor[i];
+//   }
+
+//   REQUIRE(thirdBytes == fourthBytes);
+// }
+
+TEST_CASE("Record View Functions"){
+  fstream inputFile{"data.bin", inputFile.in | inputFile.out | inputFile.binary};
+  RecordView recordCursor{inputFile,0};
+  string date = "24/12/2014";
+  Record rec1{0, date, "1234", "100", "0.5", "0.75", "0.33", "10", "20", "1"};
+  
+
+  for (int i = 0; i < 9 ; ++i ){
+    recordCursor[i] = rec1;
+  }
+
+  recordCursor.updateBlkOffset(0);
+
+  for (int i = 0; i < 9 ; ++i ){
+    Record curr = recordCursor[i];
+    debug_print(curr);
+  }
+
+
+
 }

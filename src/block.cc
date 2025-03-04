@@ -1,7 +1,5 @@
 #include "block.h"
-
 #include <vector>
-
 #include "errors.h"
 
 void BlockView::saveAt(unsigned blkOffset, std::vector<Byte> inputData) {
@@ -12,6 +10,7 @@ void BlockView::saveAt(unsigned blkOffset, std::vector<Byte> inputData) {
   this->openFile.write(reinterpret_cast<const char*>(inputData.data()),
                        blkSize);
 }
+
 
 void BlockView::loadAt(unsigned blkOffset) {
   // load block data from file at offset
@@ -26,3 +25,11 @@ void BlockView::next() {
   this->openFile.seekg((currBlkOffset * blkSize));
   this->openFile.read(reinterpret_cast<char*>(binaryData.data()), blkSize);
 }
+
+BlockView::BlockView(std::fstream &openFile, unsigned blkOffset)
+      : binaryData(BLOCK_SIZE), currBlkOffset(blkOffset),
+        numOfRecords(BLOCK_SIZE / RECORD_SIZE), blkSize(BLOCK_SIZE),
+        openFile(openFile) {
+    this->loadAt(blkOffset);
+}
+

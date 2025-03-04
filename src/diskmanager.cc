@@ -54,8 +54,8 @@ void DiskManager::txtToBinary(std::fstream &input, bool header) {
       std::memcpy(&recordBuffer, &currRecord, sizeof(Record));
       outputFile.write(reinterpret_cast<char *>(&recordBuffer), sizeof(Record));
     }
-    //! impt step is after writing records zero out remaning records and seek to
-    //! start of nextblk
+    //! impt step is after writing records zero out remaning space in blk and seek to
+    //! start of nextblk to prepare for writing of next block
     std::vector<Byte> zeroedBuffer(remaining, 0);
     outputFile.write(reinterpret_cast<char *>(zeroedBuffer.data()), remaining);
 
