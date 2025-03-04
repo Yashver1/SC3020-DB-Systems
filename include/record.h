@@ -97,7 +97,7 @@ struct Record {
     return os;
   }
 
-  const bool operator==(const Record &other) const {
+  bool operator==(const Record &other) const {
     return TEAM_ID_HOME == other.TEAM_ID_HOME &&
            FG_PCT_HOME == other.FG_PCT_HOME &&
            FT_PCT_HOME == other.FT_PCT_HOME &&
@@ -122,6 +122,6 @@ class RecordView {
   void updateBlock(unsigned offset);
 };
 
-size_t RECORD_SIZE = sizeof(Record);
+extern const size_t RECORD_SIZE;
 
 #endif  // !RECORD_H
