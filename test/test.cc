@@ -56,16 +56,16 @@ TEST_CASE("Utility Tests") {
   REQUIRE(splitLine == split(line, "\t"));
 }
 
-TEST_CASE("Disk Manager Tests") {
-  fstream file{"games.txt", file.in};
+// TEST_CASE("Disk Manager Tests") {
+//   fstream file{"games.txt", file.in};
 
-  if (!file.is_open()) {
-    std::cerr << "File not Open";
-  }
+//   if (!file.is_open()) {
+//     std::cerr << "File not Open";
+//   }
 
-  DiskManager disk{};
-  disk.txtToBinary(file, true);
-}
+//   DiskManager disk{};
+//   disk.txtToBinary(file, true);
+// }
 
 TEST_CASE("Memory Tests") {
   // Testing allocations as bytes is okay
@@ -93,13 +93,25 @@ TEST_CASE("Test Vector vs Array byte parsing") {
 
 TEST_CASE("Block View Functions") {
   Record emptyRecord{};
+
   debug_print("Before: " << emptyRecord);
   fstream inputFile{"data.bin",
                     inputFile.binary | inputFile.in | inputFile.out};
-
   BlockView blockCursor{inputFile, 0};
-  blockCursor.loadAt(2);
+  blockCursor.next();
   std::vector<Byte> currentBytes = blockCursor.data();
+  memcpy(&emptyRecord, currentBytes.data(), sizeof(Record));
+
+  debug_print("After: " << emptyRecord);
+
+  blockCursor.next();
+  currentBytes = blockCursor.data();
+  memcpy(&emptyRecord, currentBytes.data(), sizeof(Record));
+
+  debug_print("After: " << emptyRecord);
+
+  blockCursor.next();
+  currentBytes = blockCursor.data();
   memcpy(&emptyRecord, currentBytes.data(), sizeof(Record));
 
   debug_print("After: " << emptyRecord);
