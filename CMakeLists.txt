@@ -11,6 +11,10 @@ target_include_directories(utility PUBLIC include)
 target_include_directories(disk PUBLIC include)
 target_include_directories(record PUBLIC include)
 
+target_link_libraries(record PUBLIC block utility)
+target_link_libraries(disk PUBLIC block utility record)
+
 add_subdirectory(test)
 add_executable(main src/main.cc)
-target_link_libraries(main block utility disk record)
+
+target_link_libraries(main block utility record disk)

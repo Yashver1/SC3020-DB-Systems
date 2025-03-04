@@ -33,7 +33,7 @@ public:
   unsigned blkSize;
   unsigned currBlkOffset;
   std::fstream &openFile;
-  //! file should be in binary,in,out for non truncated random access writing
+  //! file should be in modes : binary,in,out for non truncated random access writing
   //! and reading
 
   std::vector<Byte> data() { return this->binaryData; }

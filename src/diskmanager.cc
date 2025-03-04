@@ -9,13 +9,15 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-
 #include "record.h"
 #include "utility.h"
 
-void DiskManager::txtToBinary(std::fstream &input, bool header) {
+void DiskManager::txtToBinary(std::fstream &input, bool header, std::string name ) {
+  unsigned blkCount;
+
+
   std::fstream outputFile{
-      "data.bin", outputFile.trunc | outputFile.out | outputFile.binary};
+      name, outputFile.trunc | outputFile.out | outputFile.binary};
   std::queue<std::string> buffer{};
   std::string temp{};
 
@@ -58,9 +60,35 @@ void DiskManager::txtToBinary(std::fstream &input, bool header) {
     //! start of nextblk to prepare for writing of next block
     std::vector<Byte> zeroedBuffer(remaining, 0);
     outputFile.write(reinterpret_cast<char *>(zeroedBuffer.data()), remaining);
-
+    blkCount++;
     offset++;
   }
-
+  this->blkMapCount.insert({name,blkCount});
   outputFile.close();
+}
+
+
+void DiskManager::linearScan(std::string name){
+  std::fstream inputFile{name, inputFile.out | inputFile.in | inputFile.binary};
+  std::fstream logFile {"logFile.txt", logFile.out};
+  //start with root
+  unsigned numOfBlocks = this->blkMapCount[name];
+  RecordView recordCursor{inputFile,0};
+
+  std::vector<Record> results{};
+
+  for(int i = 0; i < numOfBlocks ; ++i){
+    recordCursor.updateBlkOffset(i);
+
+    for(int j = 0; j < recordCursor.numOfRecords; ++j){
+      Record curr = recordCursor[j];
+      if(curr.FG_PCT_HOME >= 0.6 && curr.FG3_PCT_HOME<= 0.9)
+      results.push_back(curr);
+    }
+  }
+
+  for(auto rec : results){
+    logFile << rec;
+  }
+
 }
