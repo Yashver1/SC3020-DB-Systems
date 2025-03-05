@@ -106,3 +106,26 @@ void DiskManager::linearScan(float lowerBound, float upperBound,
     logFile << rec;
   }
 }
+
+Record DiskManager::query(unsigned address , std::string name ){
+  unsigned blkIndex = address / BLOCK_SIZE;
+  unsigned recIndex = (address % BLOCK_SIZE) / RECORD_SIZE;
+
+  std::fstream dataFile{name, dataFile.in | dataFile.out};
+  RecordView recordCursor(dataFile, 0);
+  recordCursor.updateBlkOffset(blkIndex);
+
+  Record found = recordCursor[recIndex];
+  return found;
+  dataFile.close();
+  
+};
+
+std::vector<Record> DiskManager::batchQuery(std::vector<unsigned> &addresses , std::string name){
+  std::vector<Record> results{};
+  for(auto address : addresses){
+    //! not efficient solution choose to update if have time this open and closes a file on each run
+    results.push_back(query(address,name));
+  }
+  return results;
+};

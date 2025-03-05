@@ -203,7 +203,6 @@ TEST_CASE("IndexView basic functionality") {
     REQUIRE(retrievedEntry.offset == testEntry.offset);
     REQUIRE(retrievedEntry.key == testEntry.key);
     REQUIRE(retrievedEntry.isLeaf == testEntry.isLeaf);
-
   }
 
   SECTION("Out of range access throws exception") {
@@ -253,8 +252,8 @@ TEST_CASE("IndexView with DiskManager integration") {
 
     SECTION("Write and read IndexEntries") {
       for (unsigned i = 0; i < 5; ++i) {
-        IndexEntry entry{i * BLOCK_SIZE, static_cast<float>(i) / 10,
-                         (i % 2 == 0)};
+        IndexEntry entry{i * static_cast<unsigned>(BLOCK_SIZE),
+                         static_cast<float>(i) / 10, (i % 2 == 0)};
 
         indexView[i] = entry;
       }
@@ -269,6 +268,109 @@ TEST_CASE("IndexView with DiskManager integration") {
 
     file.close();
     std::remove("index.bin");
+  } else {
+    WARN("Could not open games.txt, skipping test");
+  }
+}
+
+TEST_CASE("DiskManager query and batchQuery") {
+  std::fstream textFile{"games.txt", std::ios::in};
+  DiskManager dm{};
+
+  if (textFile.is_open()) {
+    dm.txtToBinary(textFile, true);
+    textFile.close();
+
+    unsigned firstRecordOffset = 0;
+    Record firstRecord = dm.query(firstRecordOffset, "data.bin");
+
+    REQUIRE(firstRecord.Header.offset == 0);
+
+    unsigned secondBlockOffset = BLOCK_SIZE;
+    Record secondBlockRecord = dm.query(secondBlockOffset, "data.bin");
+
+    REQUIRE(secondBlockRecord.Header.offset == secondBlockOffset);
+
+    std::vector<unsigned> addresses = {0, static_cast<unsigned>(BLOCK_SIZE),
+                                       static_cast<unsigned>(2 * BLOCK_SIZE)};
+    std::vector<Record> records = dm.batchQuery(addresses, "data.bin");
+
+    REQUIRE(records.size() == 3);
+
+    REQUIRE(records[0].Header.offset == 0);
+    REQUIRE(records[1].Header.offset == BLOCK_SIZE);
+    REQUIRE(records[2].Header.offset == 2 * BLOCK_SIZE);
+
+    unsigned recordsPerBlock = BLOCK_SIZE / RECORD_SIZE;
+    unsigned midBlockOffset = BLOCK_SIZE + (recordsPerBlock / 2) * RECORD_SIZE;
+
+    Record midBlockRecord = dm.query(midBlockOffset, "data.bin");
+    REQUIRE(midBlockRecord.Header.offset == midBlockOffset);
+  } else {
+    WARN("Could not open games.txt, skipping test");
+  }
+}
+
+TEST_CASE("DiskManager query and batchQuery with mid-block records") {
+  std::fstream textFile{"games.txt", std::ios::in};
+  DiskManager dm{};
+
+  if (textFile.is_open()) {
+    dm.txtToBinary(textFile, true);
+    textFile.close();
+
+    unsigned recordsPerBlock = BLOCK_SIZE / RECORD_SIZE;
+
+    SECTION("Query records at various positions") {
+      unsigned firstRecordOffset = 0;
+      Record firstRecord = dm.query(firstRecordOffset, "data.bin");
+      REQUIRE(firstRecord.Header.offset == firstRecordOffset);
+
+      unsigned secondRecordOffset = RECORD_SIZE;
+      Record secondRecord = dm.query(secondRecordOffset, "data.bin");
+      REQUIRE(secondRecord.Header.offset == secondRecordOffset);
+      if (recordsPerBlock >= 3) {
+        unsigned midBlockOffset = (recordsPerBlock / 2) * RECORD_SIZE;
+        Record midBlockRecord = dm.query(midBlockOffset, "data.bin");
+        REQUIRE(midBlockRecord.Header.offset == midBlockOffset);
+      }
+
+      unsigned secondBlockOffset = BLOCK_SIZE;
+      Record secondBlockRecord = dm.query(secondBlockOffset, "data.bin");
+      REQUIRE(secondBlockRecord.Header.offset == secondBlockOffset);
+
+      if (recordsPerBlock >= 3) {
+        unsigned thirdInSecondOffset = BLOCK_SIZE + 2 * RECORD_SIZE;
+        Record thirdInSecondRecord = dm.query(thirdInSecondOffset, "data.bin");
+        REQUIRE(thirdInSecondRecord.Header.offset == thirdInSecondOffset);
+      }
+    }
+
+    SECTION("Batch query with mixed positions") {
+      std::vector<unsigned> addresses;
+
+      addresses.push_back(0);
+
+      if (recordsPerBlock >= 3) {
+        addresses.push_back((recordsPerBlock / 2) * RECORD_SIZE);
+      }
+
+      addresses.push_back((recordsPerBlock - 1) * RECORD_SIZE);
+
+      addresses.push_back(BLOCK_SIZE);
+
+      if (recordsPerBlock >= 2) {
+        addresses.push_back(BLOCK_SIZE + RECORD_SIZE);
+      }
+
+      std::vector<Record> records = dm.batchQuery(addresses, "data.bin");
+
+      REQUIRE(records.size() == addresses.size());
+      for (size_t i = 0; i < records.size(); i++) {
+        REQUIRE(records[i].Header.offset == addresses[i]);
+      }
+    }
+    std::remove("data.bin");
   } else {
     WARN("Could not open games.txt, skipping test");
   }
