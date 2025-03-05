@@ -63,6 +63,18 @@ void DiskManager::txtToBinary(std::fstream &input, bool header,
     blkCount++;
     offset++;
   }
+
+  //! after writing all records, check if we need to pad the final block which
+  //! we do in this case
+  if (outputFile.tellp() % BLOCK_SIZE != 0) {
+    size_t currentPos = outputFile.tellp();
+    size_t paddingNeeded = BLOCK_SIZE - (currentPos % BLOCK_SIZE);
+
+    std::vector<char> padding(paddingNeeded, 0);
+
+    outputFile.write(padding.data(), paddingNeeded);
+  }
+
   this->blkMapCount.insert({name, blkCount});
   outputFile.close();
 }
@@ -81,7 +93,7 @@ void DiskManager::linearScan(float lowerBound, float upperBound,
     recordCursor.updateBlkOffset(i);
 
     for (int j = 0; j < recordCursor.numOfRecords; ++j) {
-      debug_print("Block " << i << " Record " << j);
+      // debug_print("Block " << i << " Record " << j);
 
       Record curr = recordCursor[j];
       if (curr.FG_PCT_HOME >= lowerBound && curr.FG_PCT_HOME <= upperBound)
