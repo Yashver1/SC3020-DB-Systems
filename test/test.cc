@@ -91,9 +91,9 @@ TEST_CASE("Test Vector vs Array byte parsing") {
   std::array<Record, 1> buffer{};
   std::vector<Byte> buffer2(RECORD_SIZE);
 
-  inputFile.read(reinterpret_cast<char*>(&buffer), sizeof(Record));
+  inputFile.read(reinterpret_cast<char *>(&buffer), sizeof(Record));
   inputFile.seekg(-sizeof(Record), inputFile.cur);
-  inputFile.read(reinterpret_cast<char*>(buffer2.data()), sizeof(Record));
+  inputFile.read(reinterpret_cast<char *>(buffer2.data()), sizeof(Record));
   REQUIRE(memcmp(buffer.data(), buffer2.data(), sizeof(Record)) == 0);
 }
 
@@ -104,7 +104,6 @@ TEST_CASE("Block View Functions") {
 
   Record emptyRecord{};
 
-  debug_print("Before: " << emptyRecord);
   fstream inputFile{"data.bin",
                     inputFile.binary | inputFile.in | inputFile.out};
   BlockView blockCursor{inputFile, 0};
@@ -166,4 +165,111 @@ TEST_CASE("Block size verification") {
   unsigned numBlocks = dm.blkMapCount["data.bin"];
   debug_print(numBlocks);
   REQUIRE(fileSize == numBlocks * BLOCK_SIZE);
+}
+
+TEST_CASE("IndexView basic functionality") {
+  std::fstream file{"temp_index.bin", std::ios::binary | std::ios::in |
+                                          std::ios::out | std::ios::trunc};
+
+  // Initialize file with empty data
+  std::vector<Byte> emptyBlock(BLOCK_SIZE, 0);
+  file.write(reinterpret_cast<char *>(emptyBlock.data()), BLOCK_SIZE);
+  file.seekg(0);
+
+  IndexView indexView(file, 0);
+
+  unsigned expectedEntries =
+      (BLOCK_SIZE - sizeof(unsigned)) / sizeof(IndexEntry);
+
+  SECTION("Constructor initializes properties correctly") {
+    REQUIRE(indexView.sizeOfIndex == sizeof(IndexEntry));
+    REQUIRE(indexView.numOfIndexEntries == expectedEntries);
+  }
+
+  SECTION("updateBlockOffset changes the block offset") {
+    indexView.updateBlockOffset(1);
+    REQUIRE(indexView.block.currBlkOffset == 1);
+  }
+
+  SECTION("IndexEntry operator works correctly") {
+    IndexEntry testEntry{12, 0.5f, true};
+
+    indexView[0] = testEntry;
+
+    IndexEntry curr = indexView[0];
+    debug_print(curr);
+
+    IndexEntry retrievedEntry = indexView[0];
+    REQUIRE(retrievedEntry.offset == testEntry.offset);
+    REQUIRE(retrievedEntry.key == testEntry.key);
+    REQUIRE(retrievedEntry.isLeaf == testEntry.isLeaf);
+
+  }
+
+  SECTION("Out of range access throws exception") {
+    REQUIRE_THROWS_AS(indexView[indexView.numOfIndexEntries],
+                      std::out_of_range);
+  }
+
+  SECTION("Multiple IndexEntries read/write works") {
+    std::vector<IndexEntry> testEntries = {
+        {100, 0.1f, true}, {200, 0.2f, false}, {300, 0.3f, true}};
+
+    for (size_t i = 0; i < testEntries.size(); ++i) {
+      indexView[i] = testEntries[i];
+    }
+
+    for (size_t i = 0; i < testEntries.size(); ++i) {
+      IndexEntry retrievedEntry = indexView[i];
+      REQUIRE(retrievedEntry.offset == testEntries[i].offset);
+      REQUIRE(retrievedEntry.key == testEntries[i].key);
+      REQUIRE(retrievedEntry.isLeaf == testEntries[i].isLeaf);
+    }
+  }
+
+  file.close();
+  std::remove("temp_index.bin");
+}
+
+TEST_CASE("IndexView with DiskManager integration") {
+  std::fstream textFile{"games.txt", std::ios::in};
+  DiskManager dm{};
+
+  if (textFile.is_open()) {
+    dm.txtToBinary(textFile, true);
+    textFile.close();
+
+    std::fstream indexFile{"index.bin",
+                           std::ios::binary | std::ios::out | std::ios::trunc};
+
+    std::vector<Byte> emptyBlock(BLOCK_SIZE, 0);
+    indexFile.write(reinterpret_cast<char *>(emptyBlock.data()), BLOCK_SIZE);
+    indexFile.close();
+
+    std::fstream file{"index.bin",
+                      std::ios::binary | std::ios::in | std::ios::out};
+
+    IndexView indexView(file, 0);
+
+    SECTION("Write and read IndexEntries") {
+      for (unsigned i = 0; i < 5; ++i) {
+        IndexEntry entry{i * BLOCK_SIZE, static_cast<float>(i) / 10,
+                         (i % 2 == 0)};
+
+        indexView[i] = entry;
+      }
+
+      for (unsigned i = 0; i < 5; ++i) {
+        IndexEntry entry = indexView[i];
+        REQUIRE(entry.offset == i * BLOCK_SIZE);
+        REQUIRE(entry.key == Approx(static_cast<float>(i) / 10));
+        REQUIRE(entry.isLeaf == (i % 2 == 0));
+      }
+    }
+
+    file.close();
+    std::remove("index.bin");
+  } else {
+    WARN("Could not open games.txt, skipping test");
+  }
 }
