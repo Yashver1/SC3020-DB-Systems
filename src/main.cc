@@ -6,9 +6,13 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-
+#include <diskmanager.h>
 #include "block.h"
 
 int main() {
-  return 0;
+  std::fstream inputFile{"games.txt", inputFile.out | inputFile.in};
+  DiskManager dm{};
+  dm.txtToBinary(inputFile, true);
+
+  inputFile.close();
 }

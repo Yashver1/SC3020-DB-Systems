@@ -230,6 +230,39 @@ TEST_CASE("IndexView basic functionality") {
   std::remove("temp_index.bin");
 }
 
+TEST_CASE("IndexView updateNodeBackPointer functionality") {
+  std::fstream file{"temp_index.bin", std::ios::binary | std::ios::in |
+                                          std::ios::out | std::ios::trunc};
+
+  std::vector<Byte> emptyBlock(BLOCK_SIZE, 0);
+  file.write(reinterpret_cast<char *>(emptyBlock.data()), BLOCK_SIZE);
+  file.seekg(0);
+
+  IndexView indexView(file, 0);
+
+  SECTION("updateNodeBackPointer writes back pointer correctly") {
+    // Test value to write as back pointer
+    unsigned testOffset = 12345;
+
+    indexView.updateNodeBackPointer(testOffset);
+
+    unsigned pos = indexView.numOfIndexEntries * indexView.sizeOfIndex;
+
+    std::vector<Byte> readBytes(sizeof(unsigned));
+    for (unsigned i = 0; i < sizeof(unsigned); ++i) {
+      readBytes[i] = indexView.block[pos + i];
+    }
+
+    unsigned readOffset = 0;
+    std::memcpy(&readOffset, readBytes.data(), sizeof(unsigned));
+
+    REQUIRE(readOffset == testOffset);
+  }
+
+  file.close();
+  std::remove("temp_index.bin");
+}
+
 TEST_CASE("IndexView with DiskManager integration") {
   std::fstream textFile{"games.txt", std::ios::in};
   DiskManager dm{};
@@ -374,4 +407,9 @@ TEST_CASE("DiskManager query and batchQuery with mid-block records") {
   } else {
     WARN("Could not open games.txt, skipping test");
   }
+}
+
+
+TEST_CASE("size check"){
+  REQUIRE(sizeof(Record) == 0);
 }

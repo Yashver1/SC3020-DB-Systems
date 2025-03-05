@@ -156,3 +156,8 @@ class RecordView {
 extern const size_t RECORD_SIZE;
 
 #endif // !RECORD_H
+
+// i * BLOCK_SIZE + j * RECORD_SIZE
+
+// 12316 / BLOCKSIZE = block no.
+// 12316 % BLOCKSIZE / RECORD_SIZE = record no.

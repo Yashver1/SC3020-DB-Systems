@@ -1,0 +1,26 @@
+REPORT STRUCTURE
+
+DEscription of all our contents structs. 
+record , size, fields etc
+index , size fields
+block size is the same, content for datablock and content for indexblock (indexblock one additonal pointer)
+
+struct 
+
+taske 2
+
+
+parsed as txt
+-- start of block & start of first record
+
+-- start of next record
+
+.
+.
+.
+.
+.
+.
+
+empty space
+-- start of next block

@@ -8,7 +8,6 @@
 
 extern const size_t RECORD_SIZE;
 
-//TODO add field for totalNumofBlocks?? or maybe put in disk manager
 class BlockView {
   std::vector<Byte> binaryData;
 

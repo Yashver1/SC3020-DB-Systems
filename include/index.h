@@ -6,9 +6,9 @@
 
 // if isLeaf true, offset is direct offset
 struct IndexEntry {
-  unsigned offset;
-  float key;
-  bool isLeaf;
+  unsigned offset; //Byte level offset 4bytes
+  float key; //FG_PCT_HOME value 4 bytes
+  bool isLeaf; // 4
   IndexEntry(unsigned offset, float key, bool isLeaf = false)
       : offset(offset), key(key), isLeaf(isLeaf) {};
   inline friend std::ostream &operator<<(std::ostream &os,
@@ -67,6 +67,16 @@ class IndexView {
 
   void updateBlockOffset(unsigned blkOffset){
     block.loadAt(blkOffset);
+  }
+
+  void updateNodeBackPointer(unsigned offset){
+    std::vector<Byte> temp;
+    temp.resize(sizeof(unsigned));
+    std::memcpy(temp.data(), &offset,  sizeof(offset));
+    unsigned pos = numOfIndexEntries*sizeOfIndex;
+    for(unsigned i = 0; i < sizeof(unsigned); ++i){
+      block[i + pos] = temp[i];
+    }
   }
 
   ProxyIndex operator[](size_t index){

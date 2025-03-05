@@ -10,9 +10,8 @@ class IndexManager{
     void createBPlusTree(std::fstream &dataFile, std::string name = "index.bin");
     std::vector<unsigned> rangeQuery(){throw NotImplemented();};
     unsigned singleQuery(){throw NotImplemented();};
-
 };
 
-
+//range of FGT_PCT_HOME VALUES or single value -> offset(s)
 
 #endif

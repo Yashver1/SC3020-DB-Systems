@@ -19,4 +19,6 @@ class DiskManager {
   std::vector<Record> batchQuery(std::vector<unsigned> &addresses, std::string name);
 };
 
+//Byte level offset -> actl record
+
 #endif
