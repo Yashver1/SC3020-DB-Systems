@@ -9,6 +9,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
 #include "block.h"
 #include "catch2/catch.hpp"
 #include "record.h"
@@ -19,11 +20,12 @@ using namespace std;
 // TEST_CASE("Block Size Test") { REQUIRE(BLOCK_SIZE != 0); }
 
 // TEST_CASE("Record Struct Test") {
-//   // !Assumption dates will be in 2000s but for memory saving we keep minus 2000
+//   // !Assumption dates will be in 2000s but for memory saving we keep minus
+//   2000
 //   // to fit in one byte
 //   string date = "24/12/2014";
-//   Record rec1{0, date, "1234", "100", "0.5", "0.75", "0.33", "10", "20", "1"};
-//   Record rec2{0, {24, 12, 14}, 1234, 100, 0.5, 0.75, 0.33, 10, 20, 1};
+//   Record rec1{0, date, "1234", "100", "0.5", "0.75", "0.33", "10", "20",
+//   "1"}; Record rec2{0, {24, 12, 14}, 1234, 100, 0.5, 0.75, 0.33, 10, 20, 1};
 
 //   REQUIRE(rec1.Header.offset == rec2.Header.offset);
 //   REQUIRE(rec1.TEAM_ID_HOME == rec2.TEAM_ID_HOME);
@@ -51,7 +53,8 @@ using namespace std;
 //   string line{
 //       "22/12/2022	1610612740	126	0.484	0.926	0.382	"
 //       "25	46	1"};
-//   vector<string> splitLine{"22/12/2022", "1610612740", "126", "0.484", "0.926",
+//   vector<string> splitLine{"22/12/2022", "1610612740", "126", "0.484",
+//   "0.926",
 //                            "0.382",      "25",         "46",  "1"};
 //   REQUIRE(splitLine == split(line, "\t"));
 // }
@@ -70,11 +73,9 @@ using namespace std;
 // TEST_CASE("Memory Tests") {
 //   // Testing allocations as bytes is okay
 //   string date = "24/12/2014";
-//   Record rec1{0, date, "1234", "100", "0.5", "0.75", "0.33", "10", "20", "1"};
-//   std::array<Record, 1> buffer{};
-//   std::memcpy(&buffer, &rec1, sizeof(rec1));
-//   REQUIRE(sizeof(buffer) == RECORD_SIZE);
-//   Record rec2{};
+//   Record rec1{0, date, "1234", "100", "0.5", "0.75", "0.33", "10", "20",
+//   "1"}; std::array<Record, 1> buffer{}; std::memcpy(&buffer, &rec1,
+//   sizeof(rec1)); REQUIRE(sizeof(buffer) == RECORD_SIZE); Record rec2{};
 //   std::memcpy(&rec2, &buffer, sizeof(Record));
 //   REQUIRE(rec1 == rec2);
 // }
@@ -137,25 +138,23 @@ using namespace std;
 // // }
 
 // TEST_CASE("Record View Functions"){
-//   fstream inputFile{"data.bin", inputFile.in | inputFile.out | inputFile.binary};
-//   RecordView recordCursor{inputFile,0};
-//   string date = "24/12/2014";
-//   Record rec1{0, date, "1234", "100", "0.5", "0.75", "0.33", "10", "20", "1"};
+//   fstream inputFile{"data.bin", inputFile.in | inputFile.out |
+//   inputFile.binary}; RecordView recordCursor{inputFile,0}; string date =
+//   "24/12/2014"; Record rec1{0, date, "1234", "100", "0.5", "0.75", "0.33",
+//   "10", "20", "1"};
 
 //   for (int i = 0; i < 9 ; ++i ){
 //     Record curr = recordCursor[i];
 //     debug_print(curr);
 //   }
 
-
-
 // }
 
-
-TEST_CASE("Brute Force Linear Scan"){
-  fstream inputFile{ "games.txt" , inputFile.in};
+TEST_CASE("Brute Force Linear Scan") {
+  //! have to be in the same scope txtToBinary as that will fill up the total
+  //! number of blocks
+  fstream inputFile{"games.txt", inputFile.in};
   DiskManager dm{};
-  dm.txtToBinary(inputFile,true);
-  dm.linearScan();
-
+  dm.txtToBinary(inputFile, true);
+  dm.linearScan(0.5, 0.59);
 }

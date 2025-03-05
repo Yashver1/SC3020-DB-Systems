@@ -9,13 +9,13 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
 #include "record.h"
 #include "utility.h"
 
-void DiskManager::txtToBinary(std::fstream &input, bool header, std::string name ) {
-  unsigned blkCount;
-
-
+void DiskManager::txtToBinary(std::fstream &input, bool header,
+                              std::string name) {
+  unsigned blkCount{};
   std::fstream outputFile{
       name, outputFile.trunc | outputFile.out | outputFile.binary};
   std::queue<std::string> buffer{};
@@ -56,39 +56,41 @@ void DiskManager::txtToBinary(std::fstream &input, bool header, std::string name
       std::memcpy(&recordBuffer, &currRecord, sizeof(Record));
       outputFile.write(reinterpret_cast<char *>(&recordBuffer), sizeof(Record));
     }
-    //! impt step is after writing records zero out remaning space in blk and seek to
-    //! start of nextblk to prepare for writing of next block
+    //! impt step is after writing records zero out remaning space in blk and
+    //! seek to start of nextblk to prepare for writing of next block
     std::vector<Byte> zeroedBuffer(remaining, 0);
     outputFile.write(reinterpret_cast<char *>(zeroedBuffer.data()), remaining);
     blkCount++;
     offset++;
   }
-  this->blkMapCount.insert({name,blkCount});
+  this->blkMapCount.insert({name, blkCount});
   outputFile.close();
 }
 
-
-void DiskManager::linearScan(std::string name){
+void DiskManager::linearScan(float lowerBound, float upperBound,
+                             std::string name) {
   std::fstream inputFile{name, inputFile.out | inputFile.in | inputFile.binary};
-  std::fstream logFile {"logFile.txt", logFile.out};
-  //start with root
+  std::fstream logFile{"logFile.txt", logFile.out | logFile.trunc | logFile.in};
+  // start with root
   unsigned numOfBlocks = this->blkMapCount[name];
-  RecordView recordCursor{inputFile,0};
+  RecordView recordCursor{inputFile, 0};
 
   std::vector<Record> results{};
 
-  for(int i = 0; i < numOfBlocks ; ++i){
+  for (int i = 0; i < numOfBlocks; ++i) {
     recordCursor.updateBlkOffset(i);
 
-    for(int j = 0; j < recordCursor.numOfRecords; ++j){
+    for (int j = 0; j < recordCursor.numOfRecords; ++j) {
+      debug_print("Block " << i << " Record " << j);
+
       Record curr = recordCursor[j];
-      if(curr.FG_PCT_HOME >= 0.6 && curr.FG3_PCT_HOME<= 0.9)
-      results.push_back(curr);
+      if (curr.FG_PCT_HOME >= lowerBound && curr.FG_PCT_HOME <= upperBound)
+
+        results.push_back(curr);
     }
   }
 
-  for(auto rec : results){
+  for (auto rec : results) {
     logFile << rec;
   }
-
 }
