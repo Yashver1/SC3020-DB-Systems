@@ -142,3 +142,66 @@ void IndexManager::createBPlusTree(std::fstream &dataFile, unsigned totalNumBloc
     indexFile.close();
 }
 
+std::vector<unsigned> IndexManager::rangeQuery(float lowerbound, float upperbound, std::string name) {
+    std::fstream indexFile{name, indexFile.out | indexFile.in | indexFile.binary};
+    IndexView indexCursor(indexFile, rootOffset - 1); 
+    
+    std::vector<unsigned> addresses{};
+    
+    IndexEntry curr = indexCursor[0];
+    while(!curr.isLeaf) {
+        unsigned idx = 0;
+        while(idx < indexCursor.numOfIndexEntries) {
+            curr = indexCursor[idx];
+            if(curr.key > lowerbound || curr.key == 0) {
+                break;
+            }
+            idx++;
+        }
+        
+        if(idx == 0) { 
+            indexCursor.updateBlockOffset(curr.offset);
+        } else if(idx >= indexCursor.numOfIndexEntries) {
+            indexCursor.updateBlockOffset(indexCursor.getNodeBackPointer());
+        } else {
+            IndexEntry last =  indexCursor[idx-1];
+            indexCursor.updateBlockOffset(last.offset);
+        }
+        
+        curr = indexCursor[0];
+    }
+    
+    bool done = false;
+    unsigned leafIdx = 0;
+    
+    while(!done) {
+        while(leafIdx < indexCursor.numOfIndexEntries) { 
+            curr = indexCursor[leafIdx];
+            
+            if((curr.key == 0 && curr.offset == 0) || curr.key > upperbound) {
+                done = true;
+                break;
+            }
+            
+            if(curr.key >= lowerbound) {
+                addresses.push_back(curr.offset);
+            }
+            
+            leafIdx++;
+        }
+        
+        if(!done) {
+            unsigned nextNode = indexCursor.getNodeBackPointer();
+            if(nextNode == 0) {
+                break;
+            }
+            indexCursor.updateBlockOffset(nextNode);
+            leafIdx = 0; 
+        }
+    }
+    
+    indexFile.close();
+    return addresses;
+}
+
+//TODO ensure last node of leaf node is min of n+1/2

@@ -836,3 +836,24 @@ TEST_CASE("B+ Tree with Specific Keys test") {
   
   indexFile.close();
 } 
+
+
+TEST_CASE("range_query vs bruteforce"){
+  fstream inputFile{"games.txt", inputFile.out | inputFile.in };
+  DiskManager dm{};
+  dm.txtToBinary(inputFile,true);
+  unsigned totalNumOfBlks = dm.blkMapCount["data.bin"];
+
+  IndexManager im{};
+  fstream dataFile{"data.bin", dataFile.in | dataFile.out | dataFile.binary};
+  im.createBPlusTree(dataFile,totalNumOfBlks);
+
+
+  auto addresses = im.rangeQuery(0.6,0.9);
+  auto records = dm.batchQuery(addresses);
+
+  fstream logFile{"range_vs_brute.txt", dataFile.out | dataFile.trunc | dataFile.in};
+  for(auto record : records){
+    logFile << record;
+  }
+}

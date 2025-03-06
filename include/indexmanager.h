@@ -10,7 +10,7 @@ class IndexManager{
     unsigned rootOffset;
     IndexManager() : blkMapCount{}, rootOffset{} {};
     void createBPlusTree(std::fstream &dataFile, unsigned totalNumBlocks, std::string name = "index.bin" );
-    std::vector<unsigned> rangeQuery(){throw NotImplemented();};
+    std::vector<unsigned> rangeQuery(float lowerbound, float upperbound, std::string name = "index.bin");
     unsigned singleQuery(){throw NotImplemented();};
 };
 

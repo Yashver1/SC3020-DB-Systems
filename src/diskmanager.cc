@@ -79,10 +79,10 @@ void DiskManager::txtToBinary(std::fstream &input, bool header,
   outputFile.close();
 }
 
-void DiskManager::linearScan(float lowerBound, float upperBound,
+std::vector<Record> DiskManager::linearScan(float lowerBound, float upperBound,
                              std::string name) {
   std::fstream inputFile{name, inputFile.out | inputFile.in | inputFile.binary};
-  std::fstream logFile{"disk_manager_linear_scan_to_remove.txt", logFile.out | logFile.trunc | logFile.in};
+  // std::fstream logFile{"disk_manager_linear_scan_to_remove.txt", logFile.out | logFile.trunc | logFile.in};
   // start with root
   unsigned numOfBlocks = this->blkMapCount[name];
   RecordView recordCursor{inputFile, 0};
@@ -102,9 +102,11 @@ void DiskManager::linearScan(float lowerBound, float upperBound,
     }
   }
 
-  for (auto rec : results) {
-    logFile << rec;
-  }
+  return results;
+
+  // for (auto rec : results) {
+  //   logFile << rec;
+  // }
 }
 
 Record DiskManager::query(unsigned address , std::string name ){

@@ -12,11 +12,11 @@ class DiskManager {
   DiskManager() : blkMapCount{} {};
   void txtToBinary(std::fstream &input, bool header,
                    std::string name = "data.bin");
-  void linearScan(float lowerBound, float upperBound,
+  std::vector<Record> linearScan(float lowerBound, float upperBound,
                   std::string name = "data.bin");
 
-  Record query( unsigned address, std::string name);
-  std::vector<Record> batchQuery(std::vector<unsigned> &addresses, std::string name);
+  Record query( unsigned address, std::string name = "data.bin");
+  std::vector<Record> batchQuery(std::vector<unsigned> &addresses, std::string name = "data.bin");
 };
 
 //Byte level offset -> actl record
