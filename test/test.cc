@@ -411,5 +411,39 @@ TEST_CASE("DiskManager query and batchQuery with mid-block records") {
 
 
 TEST_CASE("size check"){
-  REQUIRE(sizeof(Record) == 0);
+  REQUIRE(sizeof(Record) == 28);
+}
+
+TEST_CASE("index manager"){
+  std::vector<std::pair<float, unsigned>> entries;
+  std::fstream textFile{"games.txt", std::ios::in};
+  DiskManager dm{};
+  dm.txtToBinary(textFile,true);
+  unsigned totalNumBlocks = dm.blkMapCount["data.bin"];
+
+  std::fstream log2File{"log2.txt", std::ios::out | std::ios::trunc};
+  std::fstream dataFile{"data.bin", dataFile.in | dataFile.binary | dataFile.out };
+  if(!dataFile.is_open()){
+    debug_print("ERROR");
+    throw std::logic_error("not open");
+  }
+  if(!log2File.is_open()){
+    throw std::logic_error("log file not open");
+  }
+  RecordView recordCursor{dataFile,0};
+  for(unsigned i = 0; i < totalNumBlocks; ++i){
+      recordCursor.updateBlkOffset(i);
+      for (unsigned j = 0; j < recordCursor.numOfRecords; ++j){
+          Record curr = recordCursor[j];
+          std::pair<float,unsigned> valAndPointer{curr.FG_PCT_HOME,curr.Header.offset};
+          entries.push_back(valAndPointer);
+
+      }
+  }
+  debug_print(entries.size());
+  for(auto entry : entries){
+    log2File << "FG_PCT_HOME: " << entry.first << " Reference: " << entry.second << '\n';
+    log2File.flush();
+  }
+
 }

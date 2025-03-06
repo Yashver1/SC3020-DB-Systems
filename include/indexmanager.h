@@ -7,7 +7,7 @@
 class IndexManager{
     std::unordered_map<std::string,unsigned> blkMapCount;
     IndexManager() : blkMapCount{}{};
-    void createBPlusTree(std::fstream &dataFile, std::string name = "index.bin");
+    void createBPlusTree(std::fstream &dataFile, unsigned totalNumBlocks, std::string name = "index.bin" );
     std::vector<unsigned> rangeQuery(){throw NotImplemented();};
     unsigned singleQuery(){throw NotImplemented();};
 };
