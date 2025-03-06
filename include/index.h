@@ -69,6 +69,7 @@ class IndexView {
     block.loadAt(blkOffset);
   }
 
+  //TODO this should change the nearest last pointer to the end, not the actl pointer
   void updateNodeBackPointer(unsigned offset){
     std::vector<Byte> temp;
     temp.resize(sizeof(unsigned));
@@ -78,6 +79,19 @@ class IndexView {
       block[i + pos] = temp[i];
     }
   }
+
+  unsigned getNodeBackPointer(){
+    std::vector<Byte> temp;
+    temp.resize(sizeof(unsigned));
+    unsigned pos = numOfIndexEntries*sizeOfIndex;
+    for(unsigned i = 0; i < sizeof(unsigned); ++i){
+      temp[i] = block[i+pos];
+    }
+    unsigned result{};
+    std::memcpy(&result,temp.data(),sizeof(unsigned));
+    return result;
+  }
+
 
   ProxyIndex operator[](size_t index){
     if(index >= numOfIndexEntries){

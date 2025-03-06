@@ -87,7 +87,7 @@ TEST_CASE("Test Vector vs Array byte parsing") {
   dm.txtToBinary(textFile, true);
 
   fstream inputFile{"data.bin", inputFile.binary | inputFile.in};
-  fstream logFile{"log.txt", logFile.out | logFile.trunc};
+  fstream logFile{"test_vector_vs_array_byte_parsing.txt", logFile.out | logFile.trunc};
   std::array<Record, 1> buffer{};
   std::vector<Byte> buffer2(RECORD_SIZE);
 
@@ -129,7 +129,7 @@ TEST_CASE("Record View Functions") {
   fstream inputFile{"data.bin",
                     inputFile.in | inputFile.out | inputFile.binary};
 
-  fstream log{"log.txt", log.trunc | log.out | log.in};
+  fstream log{"record_view_functions.txt", log.trunc | log.out | log.in};
 
   RecordView recordCursor{inputFile, 0};
   for (int i = 0; i < dm.blkMapCount["data.bin"]; i++) {
@@ -148,7 +148,7 @@ TEST_CASE("Brute Force Linear Scan") {
   fstream inputFile{"games.txt", inputFile.in};
   DiskManager dm{};
   dm.txtToBinary(inputFile, true);
-  dm.linearScan(0.5, 0.59);
+  dm.linearScan(0.6, 0.9);
 }
 
 TEST_CASE("Index Struct") { REQUIRE(sizeof(IndexEntry) == 12); }
@@ -168,10 +168,9 @@ TEST_CASE("Block size verification") {
 }
 
 TEST_CASE("IndexView basic functionality") {
-  std::fstream file{"temp_index.bin", std::ios::binary | std::ios::in |
-                                          std::ios::out | std::ios::trunc};
+  std::fstream file{"temp_index.bin", file.binary | file.in |
+                                          file.out | file.trunc};
 
-  // Initialize file with empty data
   std::vector<Byte> emptyBlock(BLOCK_SIZE, 0);
   file.write(reinterpret_cast<char *>(emptyBlock.data()), BLOCK_SIZE);
   file.seekg(0);
@@ -241,7 +240,6 @@ TEST_CASE("IndexView updateNodeBackPointer functionality") {
   IndexView indexView(file, 0);
 
   SECTION("updateNodeBackPointer writes back pointer correctly") {
-    // Test value to write as back pointer
     unsigned testOffset = 12345;
 
     indexView.updateNodeBackPointer(testOffset);
@@ -421,7 +419,7 @@ TEST_CASE("index manager"){
   dm.txtToBinary(textFile,true);
   unsigned totalNumBlocks = dm.blkMapCount["data.bin"];
 
-  std::fstream log2File{"log2.txt", std::ios::out | std::ios::trunc};
+  std::fstream log2File{"index_manager.txt", std::ios::out | std::ios::trunc};
   std::fstream dataFile{"data.bin", dataFile.in | dataFile.binary | dataFile.out };
   if(!dataFile.is_open()){
     debug_print("ERROR");
@@ -450,7 +448,6 @@ TEST_CASE("index manager"){
 
 
 TEST_CASE("IndexManager Build B+ Tree Test") {
-  // Setup: Create the data file first
   std::fstream textFile{"games.txt", std::ios::in};
   DiskManager dm{};
   dm.txtToBinary(textFile, true);
@@ -459,13 +456,10 @@ TEST_CASE("IndexManager Build B+ Tree Test") {
   debug_print("Total Number of Blocks: " << totalNumBlocks << "\n");
   textFile.close();
   
-  // Test index name
   std::string indexFileName = "test_index.bin";
   
-  // Clean up any existing file
   std::remove(indexFileName.c_str());
   
-  // Create the IndexManager instance and build tree
   std::fstream dataFile{"data.bin", std::ios::binary | std::ios::in | std::ios::out}; 
   REQUIRE(dataFile.is_open());
     
@@ -473,40 +467,32 @@ TEST_CASE("IndexManager Build B+ Tree Test") {
   indexManager.createBPlusTree(dataFile, totalNumBlocks, indexFileName);
   dataFile.close();
   
-  // Now verify the index file and its contents
   {
     std::fstream indexFile{indexFileName, std::ios::binary | std::ios::in};
     REQUIRE(indexFile.is_open());
     
-    // Open log file
-    std::fstream logFile{"index_tree_log.txt", std::ios::out | std::ios::trunc};
+    std::fstream logFile{"index_manager_build_b+tree.txt", std::ios::out | std::ios::trunc};
     REQUIRE(logFile.is_open());
     
-    // Get file size to calculate number of blocks
     indexFile.seekg(0, std::ios::end);
     std::streampos fileSize = indexFile.tellg();
     unsigned numIndexBlocks = fileSize / BLOCK_SIZE;
     indexFile.seekg(0, std::ios::beg);
     
-    // Get info about first block to determine entries per block
     IndexView firstView(indexFile, 0);
     unsigned entriesPerBlock = firstView.numOfIndexEntries;
     
-    // Write summary information
     logFile << "Index file created with " << numIndexBlocks << " blocks" << std::endl;
     logFile << "Each block can store " << entriesPerBlock << " index entries" << std::endl;
     logFile << "----------------------------------------------------" << std::endl;
     
-    // Check contents of each leaf node
     for (unsigned i = 0; i < numIndexBlocks; i++) {
       IndexView indexView(indexFile, i);
       logFile << "Node " << i << " contents: ";
       
-      // Print all entries in the node
       unsigned count = 0;
       while (count < indexView.numOfIndexEntries) {
         IndexEntry entry = indexView[count];
-        // Stop if we hit empty entries after a significant number
         if (entry.key == 0 && entry.offset == 0 && i > 1) break;
         
         logFile << entry.key << "→" << entry.offset;
@@ -517,7 +503,6 @@ TEST_CASE("IndexManager Build B+ Tree Test") {
       logFile << "\nNode has " << count << " entries\n ";
       logFile << std::endl;
       
-      // Check if this node points to another node
       unsigned backPointer = 0;
       unsigned pos = indexView.numOfIndexEntries * indexView.sizeOfIndex;
       std::vector<Byte> readBytes(sizeof(unsigned));
@@ -535,6 +520,319 @@ TEST_CASE("IndexManager Build B+ Tree Test") {
     logFile.close();
   }
   
-  // Clean up
   std::remove(indexFileName.c_str());
 }
+
+
+TEST_CASE("B+ Tree Bulk Loading verification test") {
+  std::fstream textFile{"games.txt", std::ios::in};
+  DiskManager dm{};
+  dm.txtToBinary(textFile, true);
+  unsigned totalNumBlocks = dm.blkMapCount["data.bin"];
+  textFile.close();
+  
+  std::string indexFileName = "test_bplus_tree.bin";
+  std::string logFileName = "B+_Tree_Bulk_Loading_verification_test.log";
+  
+  std::remove(indexFileName.c_str());
+  
+  std::fstream dataFile{"data.bin", std::ios::binary | std::ios::in | std::ios::out};
+  REQUIRE(dataFile.is_open());
+  
+  IndexManager indexManager;
+  indexManager.createBPlusTree(dataFile, totalNumBlocks, indexFileName);
+  dataFile.close();
+  
+  std::fstream indexFile{indexFileName, std::ios::binary | std::ios::in | std::ios::out};
+  std::fstream logFile{logFileName, std::ios::out | std::ios::trunc};
+  REQUIRE(indexFile.is_open());
+  REQUIRE(logFile.is_open());
+  
+  indexFile.seekg(0, std::ios::end);
+  std::streampos fileSize = indexFile.tellg();
+  unsigned numIndexBlocks = fileSize / BLOCK_SIZE;
+  indexFile.seekg(0, std::ios::beg);
+  
+  SECTION("Verify index structure") {
+    std::map<unsigned, std::vector<std::pair<float, unsigned>>> nodeContents;
+    std::map<unsigned, std::vector<unsigned>> childPointers;
+    
+    for (unsigned i = 0; i < numIndexBlocks; i++) {
+      IndexView indexView(indexFile, i);
+      
+      std::vector<std::pair<float, unsigned>> entries;
+      unsigned j = 0;
+      while (j < (BLOCK_SIZE - sizeof(unsigned)) / sizeof(IndexEntry)) {
+        IndexEntry entry = indexView[j];
+        if (entry.key == 0 && entry.offset == 0 && j > 0) break;
+        entries.push_back({entry.key, entry.offset});
+        j++;
+      }
+      
+      nodeContents[i] = entries;
+      
+      unsigned backPtr = 0;
+      std::vector<Byte> backPtrBytes(sizeof(unsigned));
+      unsigned pos = (BLOCK_SIZE - sizeof(unsigned));
+      for (unsigned k = 0; k < sizeof(unsigned); k++) {
+        backPtrBytes[k] = indexView.block[pos + k];
+      }
+      std::memcpy(&backPtr, backPtrBytes.data(), sizeof(unsigned));
+      
+      std::vector<unsigned> pointers;
+      for (const auto& entry : entries) {
+        pointers.push_back(entry.second);
+      }
+      if (backPtr > 0) pointers.push_back(backPtr);
+      childPointers[i] = pointers;
+    }
+    
+    logFile << "\nB+ Tree Structure:\n";
+    logFile << "Total nodes: " << numIndexBlocks << "\n";
+    
+    for (unsigned i = 0; i < numIndexBlocks; i++) {
+      bool isLeaf = true;
+      
+      for (const auto& entry : nodeContents[i]) {
+        if (entry.second < numIndexBlocks) {
+          isLeaf = false;
+          break;
+        }
+      }
+      
+      logFile << "Node " << i << " (" << (isLeaf ? "Leaf" : "Internal") << ") contains:\n";
+      
+      for (const auto& entry : nodeContents[i]) {
+        logFile << "  Key: " << entry.first << ", Points to: " << entry.second << "\n";
+      }
+      
+      if (!childPointers[i].empty()) {
+        logFile << "  Back pointer: " << childPointers[i].back() << "\n";
+      }
+    }
+    
+    SECTION("Leaf node linkage") {
+      std::vector<unsigned> leafNodes;
+      for (unsigned i = 0; i < numIndexBlocks; i++) {
+        if (!nodeContents[i].empty() && nodeContents[i][0].second >= numIndexBlocks) {
+          leafNodes.push_back(i);
+        }
+      }
+      
+      for (size_t i = 0; i < leafNodes.size() - 1; i++) {
+        IndexView node(indexFile, leafNodes[i]);
+        unsigned backPtr = 0;
+        std::vector<Byte> backPtrBytes(sizeof(unsigned));
+        unsigned pos = (BLOCK_SIZE - sizeof(unsigned));
+        for (unsigned k = 0; k < sizeof(unsigned); k++) {
+          backPtrBytes[k] = node.block[pos + k];
+        }
+        std::memcpy(&backPtr, backPtrBytes.data(), sizeof(unsigned));
+        
+        REQUIRE(backPtr == leafNodes[i+1]);
+      }
+    }
+    
+    SECTION("Internal node separator keys") {
+      std::vector<unsigned> internalNodes;
+      for (unsigned i = 0; i < numIndexBlocks; i++) {
+        if (!nodeContents[i].empty() && nodeContents[i][0].second < numIndexBlocks) {
+          internalNodes.push_back(i);
+        }
+      }
+      
+      for (unsigned nodeId : internalNodes) {
+        for (size_t i = 0; i < nodeContents[nodeId].size(); i++) {
+          unsigned childId = childPointers[nodeId][i];
+          if (childId < numIndexBlocks && !nodeContents[childId].empty()) {
+            if (i < nodeContents[nodeId].size() - 1) {
+              float separatorKey = nodeContents[nodeId][i+1].first;
+              REQUIRE(nodeContents[childId][0].first <= separatorKey);
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  logFile.close();
+  indexFile.close();
+  std::remove(indexFileName.c_str());
+}
+
+
+
+TEST_CASE("B+ Tree with Specific Keys test") {
+  std::vector<float> keys  = {3.0f, 4.0f, 6.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 20.0f, 22.0f};
+
+  std::priority_queue<std::pair<float, unsigned>,std::vector<std::pair<float,unsigned>>,std::greater<std::pair<float,unsigned>>> entries;
+
+  for(auto key : keys){
+    entries.push(std::pair<float,unsigned>{key,0});
+  }
+
+  std::fstream indexFile("test_btree.bin",indexFile.out | indexFile.in | indexFile.trunc | indexFile.binary);
+
+  debug_print("Total num of entries : " << entries.size());
+  unsigned maxN = 2;
+  unsigned minN = (maxN+1) / 2;
+  unsigned maxNumberofLeafNodes = (entries.size() + 1)/minN;
+  unsigned maxPointers = maxN+1;
+
+  std::vector<std::vector<float>> currNodes;
+  std::vector<unsigned> nodeNumber;
+
+  //create leaf nodes
+  for(unsigned i = 0; i < maxNumberofLeafNodes && !entries.empty(); ++i) {
+      std::vector<Byte> initalData(BLOCK_SIZE,0);
+      indexFile.write(reinterpret_cast<const char*>(initalData.data()),BLOCK_SIZE);
+      IndexView indexCursor(indexFile,i);
+
+      if(i > 0){
+          indexCursor.updateBlockOffset(i-1);
+          indexCursor.updateNodeBackPointer(i);
+          indexCursor.updateBlockOffset(i);
+      }
+
+      nodeNumber.push_back(i);
+
+      std::vector<float> curr;
+      for(unsigned j = 0; j < maxN && !entries.empty(); ++j){
+          auto currValAndPointer = entries.top();
+          entries.pop();
+          IndexEntry currIndexEntry{currValAndPointer.second,currValAndPointer.first,true};
+          indexCursor[j] = currIndexEntry;
+          curr.push_back(currValAndPointer.first);
+      }
+
+      currNodes.push_back(curr);
+  }
+
+  //create parent nodes
+
+  std::vector<std::vector<float>> prevLevel = currNodes;
+  std::vector<unsigned> prevNodeNumbers = nodeNumber;
+
+  // Debug prints
+  debug_print("prevNodeNumbers: ");
+  for(auto num : prevNodeNumbers) {
+    std::cout << num << " ";
+  }
+  std::cout << std::endl;
+
+  debug_print("prevLevel contents:");
+  for(auto node : prevLevel) {
+    std::cout << "Node values: ";
+    for(auto val : node) {
+      std::cout << val << " ";
+    }
+    std::cout << std::endl;
+  }
+
+  unsigned lastNodeNumber = prevNodeNumbers.back() + 1;
+
+  while(prevLevel.size() > 1){
+      std::vector<std::vector<float>> currentLevel{};
+      std::vector<unsigned> currentNodes{};
+
+      std::vector<float> currInternalNode{};
+
+      for(unsigned i = 0; i < prevNodeNumbers.size(); ++i){
+          if(currInternalNode.size() >= maxPointers){
+              //split node
+              unsigned splitBoundary = (maxPointers + 1)/2;
+              std::vector<float> firstHalf(currInternalNode.begin(), currInternalNode.begin() + splitBoundary);
+              std::vector<float> secondHalf(currInternalNode.begin() + splitBoundary, currInternalNode.end());
+              currentLevel.push_back(firstHalf);
+              currentNodes.push_back(lastNodeNumber);
+              lastNodeNumber++;
+
+              //become split node
+              currInternalNode = secondHalf;
+          }
+
+          //push first key of each child node
+          currInternalNode.push_back(prevLevel[i][0]);
+      }
+
+      //! first change
+      if(!currInternalNode.empty()){
+        currentLevel.push_back(currInternalNode);
+        currentNodes.push_back(lastNodeNumber);
+        lastNodeNumber++;
+      }
+
+      assert(prevNodeNumbers.size() == prevLevel.size() && "prevNodeNumbers not equal to prevLevel!");
+      unsigned prevNodeidx{};
+      for(unsigned i = 0; i < currentLevel.size(); ++i){
+          std::vector<Byte> writeBuffer(BLOCK_SIZE,0);
+          indexFile.write(reinterpret_cast<const char*>(writeBuffer.data()),BLOCK_SIZE);
+          IndexView indexCursor(indexFile,currentNodes[i]);
+          //skip first key value as its the smallest value subtree
+          for(unsigned j = 1; j < currentLevel[i].size(); ++j){
+              IndexEntry internalNodeIdxEntry{prevNodeNumbers[prevNodeidx],currentLevel[i][j]};
+              indexCursor[j-1] = internalNodeIdxEntry;
+              prevNodeidx++;
+          }
+          indexCursor.updateNodeBackPointer(prevNodeNumbers[prevNodeidx]);
+          prevNodeidx++;
+      }
+      // Print out the current level and current nodes before assignment
+      debug_print("Current Level contents:");
+      for(auto& node : currentLevel) {
+          std::cout << "Node values: ";
+          for(auto val : node) {
+          std::cout << val << " ";
+          }
+          std::cout << std::endl;
+      }
+      
+      debug_print("Current Nodes: ");
+      for(auto num : currentNodes) {
+          std::cout << num << " ";
+      }
+      std::cout << std::endl;
+
+      prevLevel = currentLevel;
+      prevNodeNumbers = currentNodes;
+  }
+
+  // debugging print for node number 
+  // std::ofstream logFile("bplustree_debug.txt", std::ios::app);
+  
+  // logFile << "Debug - nodeNumber: ";
+  // for (unsigned idx : nodeNumber) {
+  //     logFile << idx << " ";
+  // }
+  // logFile << std::endl;
+
+  // logFile << "Debug - currNodes contents:" << std::endl;
+  // for (size_t i = 0; i < currNodes.size(); ++i) {
+  //     logFile << "  Node " << i << " (ID: " << nodeNumber[i] << "): ";
+  //     for (float val : currNodes[i]) {
+  //         logFile << val << " ";
+  //     }
+  //     logFile << std::endl;
+  // }
+  
+  // logFile.close();
+
+  //create parent nodes
+  unsigned rootOffset = lastNodeNumber;
+
+  indexFile.flush();
+  indexFile.seekg(indexFile.beg);
+
+  IndexView testCursor{indexFile,0};
+
+  for(unsigned i = 0; i < 8; ++i){
+    testCursor.updateBlockOffset(i);
+    for(unsigned j = 0; j < 2; j++){
+      IndexEntry curr = testCursor[j];
+      debug_print("Curr entry: "<< curr);
+    }
+    debug_print("Last pointer: "<< testCursor.getNodeBackPointer());
+  }
+  
+  indexFile.close();
+} 

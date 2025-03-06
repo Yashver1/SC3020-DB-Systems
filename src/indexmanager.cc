@@ -8,6 +8,7 @@
 #include <utility>
 #include <queue>
 #include <functional>
+#include <cassert>
 void IndexManager::createBPlusTree(std::fstream &dataFile, unsigned totalNumBlocks,std::string name)  {
     std::priority_queue<std::pair<float, unsigned>,std::vector<std::pair<float,unsigned>>,std::greater<std::pair<float,unsigned>>> entries;
     std::fstream indexFile(name, indexFile.binary | indexFile.in | indexFile.out | indexFile.trunc);
@@ -61,30 +62,61 @@ void IndexManager::createBPlusTree(std::fstream &dataFile, unsigned totalNumBloc
 
     std::vector<std::vector<float>> prevLevel = currNodes;
     std::vector<unsigned> prevNodeNumbers = nodeNumber;
+    unsigned lastNodeNumber = prevNodeNumbers.back() + 1;
 
     while(prevLevel.size() > 1){
         std::vector<std::vector<float>> currentLevel{};
         std::vector<unsigned> currentNodes{};
 
         std::vector<float> currInternalNode{};
+
         for(unsigned i = 0; i < prevNodeNumbers.size(); ++i){
             if(currInternalNode.size() >= maxPointers){
                 //split node
-                std::vector<float> newInternalNode{};
-                currInternalNode.
+                unsigned splitBoundary = (maxPointers + 1)/2;
+                std::vector<float> firstHalf(currInternalNode.begin(), currInternalNode.begin() + splitBoundary);
+                std::vector<float> secondHalf(currInternalNode.begin() + splitBoundary + 1, currInternalNode.end());
+                currentLevel.push_back(firstHalf);
+                currentNodes.push_back(lastNodeNumber);
+                lastNodeNumber++;
 
+                //become split node
+                currInternalNode = secondHalf;
             }
-            
+
+            //push first key of each child node
+            currInternalNode.push_back(prevLevel[i][0]);
         }
 
+        if(!currInternalNode.empty()){
+            currentLevel.push_back(currInternalNode);
+            currentNodes.push_back(lastNodeNumber);
+            lastNodeNumber++;
+          }
+
+        assert(prevNodeNumbers.size() == prevLevel.size() && "prevNodeNumbers not equal to prevLevel!");
+        unsigned prevNodeidx{};
+        for(unsigned i = 0; i < currentLevel.size(); ++i){
+            std::vector<Byte> writeBuffer(BLOCK_SIZE,0);
+            indexFile.write(reinterpret_cast<const char*>(writeBuffer.data()),BLOCK_SIZE);
+            IndexView indexCursor(indexFile,currentNodes[i]);
+            //skip first key value as its the smallest value subtree
+            for(unsigned j = 1; j < currentLevel[i].size(); ++j){
+                IndexEntry internalNodeIdxEntry{prevNodeNumbers[prevNodeidx],currentLevel[i][j]};
+                indexCursor[j-1] = internalNodeIdxEntry;
+                prevNodeidx++;
+            }
+            indexCursor.updateNodeBackPointer(prevNodeNumbers[prevNodeidx]);
+            prevNodeidx++;
+        }
+
+
+        prevLevel = currentLevel;
+        prevNodeNumbers = currentNodes;
     }
 
-
-
-
-
     // debugging print for node number 
-    // std::ofstream logFile("bplustree_debug.log", std::ios::app);
+    // std::ofstream logFile("bplustree_debug.txt", std::ios::app);
     
     // logFile << "Debug - nodeNumber: ";
     // for (unsigned idx : nodeNumber) {
@@ -104,6 +136,8 @@ void IndexManager::createBPlusTree(std::fstream &dataFile, unsigned totalNumBloc
     // logFile.close();
 
     //create parent nodes
+    rootOffset = lastNodeNumber;
+
     indexFile.flush();
     indexFile.close();
 }
