@@ -6,7 +6,7 @@
 
 // if isLeaf true, offset is direct offset
 struct IndexEntry {
-  unsigned offset; //Byte level offset 4bytes
+  unsigned offset; //Byte level offset FOR leaf nodes and BLOCK level offset for internal node 4bytes //
   float key; //FG_PCT_HOME value 4 bytes
   bool isLeaf; // 4
   IndexEntry(unsigned offset, float key, bool isLeaf = false)

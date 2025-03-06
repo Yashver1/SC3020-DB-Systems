@@ -9,7 +9,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
+#include "indexmanager.h"
 #include "block.h"
 #include "catch2/catch.hpp"
 #include "index.h"
@@ -446,4 +446,95 @@ TEST_CASE("index manager"){
     log2File.flush();
   }
 
+}
+
+
+TEST_CASE("IndexManager Build B+ Tree Test") {
+  // Setup: Create the data file first
+  std::fstream textFile{"games.txt", std::ios::in};
+  DiskManager dm{};
+  dm.txtToBinary(textFile, true);
+  unsigned totalNumBlocks = dm.blkMapCount["data.bin"];
+
+  debug_print("Total Number of Blocks: " << totalNumBlocks << "\n");
+  textFile.close();
+  
+  // Test index name
+  std::string indexFileName = "test_index.bin";
+  
+  // Clean up any existing file
+  std::remove(indexFileName.c_str());
+  
+  // Create the IndexManager instance and build tree
+  std::fstream dataFile{"data.bin", std::ios::binary | std::ios::in | std::ios::out}; 
+  REQUIRE(dataFile.is_open());
+    
+  IndexManager indexManager;
+  indexManager.createBPlusTree(dataFile, totalNumBlocks, indexFileName);
+  dataFile.close();
+  
+  // Now verify the index file and its contents
+  {
+    std::fstream indexFile{indexFileName, std::ios::binary | std::ios::in};
+    REQUIRE(indexFile.is_open());
+    
+    // Open log file
+    std::fstream logFile{"index_tree_log.txt", std::ios::out | std::ios::trunc};
+    REQUIRE(logFile.is_open());
+    
+    // Get file size to calculate number of blocks
+    indexFile.seekg(0, std::ios::end);
+    std::streampos fileSize = indexFile.tellg();
+    unsigned numIndexBlocks = fileSize / BLOCK_SIZE;
+    indexFile.seekg(0, std::ios::beg);
+    
+    // Get info about first block to determine entries per block
+    IndexView firstView(indexFile, 0);
+    unsigned entriesPerBlock = firstView.numOfIndexEntries;
+    
+    // Write summary information
+    logFile << "Index file created with " << numIndexBlocks << " blocks" << std::endl;
+    logFile << "Each block can store " << entriesPerBlock << " index entries" << std::endl;
+    logFile << "----------------------------------------------------" << std::endl;
+    
+    // Check contents of each leaf node
+    for (unsigned i = 0; i < numIndexBlocks; i++) {
+      IndexView indexView(indexFile, i);
+      logFile << "Node " << i << " contents: ";
+      
+      // Print all entries in the node
+      unsigned count = 0;
+      while (count < indexView.numOfIndexEntries) {
+        IndexEntry entry = indexView[count];
+        // Stop if we hit empty entries after a significant number
+        if (entry.key == 0 && entry.offset == 0 && i > 1) break;
+        
+        logFile << entry.key << "→" << entry.offset;
+        if (count < indexView.numOfIndexEntries - 1) logFile << ", ";
+        count++;
+      }
+
+      logFile << "\nNode has " << count << " entries\n ";
+      logFile << std::endl;
+      
+      // Check if this node points to another node
+      unsigned backPointer = 0;
+      unsigned pos = indexView.numOfIndexEntries * indexView.sizeOfIndex;
+      std::vector<Byte> readBytes(sizeof(unsigned));
+      for (unsigned j = 0; j < sizeof(unsigned); j++) {
+        readBytes[j] = indexView.block[pos + j];
+      }
+      std::memcpy(&backPointer, readBytes.data(), sizeof(unsigned));
+      
+      if (backPointer != 0) {
+        logFile << "  Node " << i << " has back pointer to node " << backPointer << std::endl;
+      }
+    }
+    
+    indexFile.close();
+    logFile.close();
+  }
+  
+  // Clean up
+  std::remove(indexFileName.c_str());
 }

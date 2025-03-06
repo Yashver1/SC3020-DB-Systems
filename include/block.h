@@ -40,6 +40,7 @@ public:
   void saveAt(unsigned blkOffset, std::vector<Byte> inputData);
   void next();
   BlockView(std::fstream &openFile, unsigned blkOffset);
+  BlockView(std::fstream &openFile, std::vector<Byte> initalData);
   ProxyByte operator[](size_t index) {
     if (index >= binaryData.size()) {
       throw std::out_of_range("indexed access to block data out of range");

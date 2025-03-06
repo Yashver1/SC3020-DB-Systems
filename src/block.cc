@@ -33,3 +33,13 @@ BlockView::BlockView(std::fstream &openFile, unsigned blkOffset)
     this->loadAt(blkOffset);
 }
 
+BlockView::BlockView(std::fstream &openFile, std::vector<Byte> intialData)
+      : binaryData(BLOCK_SIZE), currBlkOffset(0),
+        numOfRecords(BLOCK_SIZE / RECORD_SIZE), blkSize(BLOCK_SIZE),
+        openFile(openFile) {
+    this->saveAt(0,intialData);
+    this->loadAt(0);//!uneceessary load?
+}
+
+
+
