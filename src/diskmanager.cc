@@ -1,5 +1,6 @@
 #include "diskmanager.h"
-
+#include "indexmanager.h"
+#include "index.h"
 #include <array>
 #include <cassert>
 #include <cstring>
@@ -9,9 +10,9 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-
 #include "record.h"
 #include "utility.h"
+#include <unordered_set>
 
 void DiskManager::txtToBinary(std::fstream &input, bool header,
                               std::string name) {
@@ -39,6 +40,8 @@ void DiskManager::txtToBinary(std::fstream &input, bool header,
       buffer.pop();
       std::vector<std::string> currFields = split(currLine, "\t");
       unsigned diskOffset = offset * BLOCK_SIZE + i * RECORD_SIZE;
+
+      if(currFields[0].size() == 0 && currFields[1].size() == 0 && currFields[2].size())
 
       for (std::string &field : currFields) {
         if (field.size() == 0) {
@@ -79,37 +82,32 @@ void DiskManager::txtToBinary(std::fstream &input, bool header,
   outputFile.close();
 }
 
-std::vector<Record> DiskManager::linearScan(float lowerBound, float upperBound,
-                             std::string name) {
-  std::fstream inputFile{name, inputFile.out | inputFile.in | inputFile.binary};
-  // std::fstream logFile{"disk_manager_linear_scan_to_remove.txt", logFile.out | logFile.trunc | logFile.in};
-  // start with root
-  unsigned numOfBlocks = this->blkMapCount[name];
-  RecordView recordCursor{inputFile, 0};
-
-  std::vector<Record> results{};
-
-  for (int i = 0; i < numOfBlocks; ++i) {
-    recordCursor.updateBlkOffset(i);
-
-    for (int j = 0; j < recordCursor.numOfRecords; ++j) {
-      // debug_print("Block " << i << " Record " << j);
-
-      Record curr = recordCursor[j];
-      if (curr.FG_PCT_HOME >= lowerBound && curr.FG_PCT_HOME <= upperBound)
-
-        results.push_back(curr);
+std::vector<Record> DiskManager::linearScan(float lowerBound, float upperBound, std::string name) {
+    std::fstream inputFile{name, inputFile.out | inputFile.in | inputFile.binary};
+    unsigned numOfBlocks = this->blkMapCount[name];
+    RecordView recordCursor{inputFile, 0};
+    
+    std::vector<Record> results{};
+    
+    for (unsigned i = 0; i < numOfBlocks; ++i) {
+        recordCursor.updateBlkOffset(i);
+        
+        NUMBER_OF_DATA_BLOCKS_BRUTE_FORCE++;
+        
+        for (unsigned j = 0; j < recordCursor.numOfRecords; ++j) {
+            Record curr = recordCursor[j];
+            if (curr.FG_PCT_HOME >= lowerBound && curr.FG_PCT_HOME <= upperBound)
+                results.push_back(curr);
+        }
     }
-  }
-
-  return results;
-
-  // for (auto rec : results) {
-  //   logFile << rec;
-  // }
+    
+    inputFile.close();
+    return results;
 }
 
 Record DiskManager::query(unsigned address , std::string name ){
+
+
   unsigned blkIndex = address / BLOCK_SIZE;
   unsigned recIndex = (address % BLOCK_SIZE) / RECORD_SIZE;
 
@@ -125,9 +123,26 @@ Record DiskManager::query(unsigned address , std::string name ){
 
 std::vector<Record> DiskManager::batchQuery(std::vector<unsigned> &addresses , std::string name){
   std::vector<Record> results{};
-  for(auto address : addresses){
-    //! not efficient solution choose to update if have time this open and closes a file on each run
-    results.push_back(query(address,name));
+  NUMBER_OF_DATA_BLOCKS_INDEX_ACCESS=0;
+  std::unordered_set<unsigned> setOfBlks;
+
+  std::fstream dataFile{name, dataFile.in | dataFile.out};
+  RecordView recordCursor(dataFile,0);
+  for(unsigned address : addresses){
+    unsigned blkIndex = address / BLOCK_SIZE;
+    unsigned recIndex = (address % BLOCK_SIZE) / RECORD_SIZE;
+    if(setOfBlks.find(blkIndex) == setOfBlks.end()){
+      setOfBlks.insert(blkIndex);
+    } else {
+      NUMBER_OF_DATA_BLOCKS_INDEX_ACCESS++;
+    }
+
+
+    recordCursor.updateBlkOffset(blkIndex);
+    Record found = recordCursor[recIndex];
+    results.push_back(found);
   }
+
+  dataFile.close();
   return results;
 };

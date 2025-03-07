@@ -24,6 +24,17 @@ using Byte = unsigned char;
 
 extern const size_t BLOCK_SIZE;
 
+extern unsigned NUMBER_OF_RECORDS;
+extern unsigned NUMBER_OF_BLOCKS;
+extern unsigned NUMBER_OF_RECORDS_PER_BLOCK;
+extern unsigned BPLUSTREE_N;
+extern unsigned NUMBER_OF_NODES_BPLUSTREE;
+extern unsigned NUMBER_OF_LEVELS_BPLUSTREE;
+extern unsigned NUMBER_OF_DATA_BLOCKS_INDEX_ACCESS;
+extern unsigned NUMBER_OF_INDEX_BLOCKS_INDEX_ACCESS;
+extern unsigned NUMBER_OF_DATA_BLOCKS_BRUTE_FORCE;
+
+
 size_t getBlockSize();
 
 std::vector<std::string> split(std::string input, std::string del);

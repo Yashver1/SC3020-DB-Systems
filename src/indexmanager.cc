@@ -9,6 +9,7 @@
 #include <queue>
 #include <functional>
 #include <cassert>
+#include<unordered_set>
 void IndexManager::createBPlusTree(std::fstream &dataFile, unsigned totalNumBlocks,std::string name)  {
     std::priority_queue<std::pair<float, unsigned>,std::vector<std::pair<float,unsigned>>,std::greater<std::pair<float,unsigned>>> entries;
     std::fstream indexFile(name, indexFile.binary | indexFile.in | indexFile.out | indexFile.trunc);
@@ -58,7 +59,6 @@ void IndexManager::createBPlusTree(std::fstream &dataFile, unsigned totalNumBloc
         currNodes.push_back(curr);
     }
 
-    //create parent nodes
 
     std::vector<std::vector<float>> prevLevel = currNodes;
     std::vector<unsigned> prevNodeNumbers = nodeNumber;
@@ -72,7 +72,6 @@ void IndexManager::createBPlusTree(std::fstream &dataFile, unsigned totalNumBloc
 
         for(unsigned i = 0; i < prevNodeNumbers.size(); ++i){
             if(currInternalNode.size() >= maxPointers){
-                //split node
                 unsigned splitBoundary = (maxPointers + 1)/2;
                 std::vector<float> firstHalf(currInternalNode.begin(), currInternalNode.begin() + splitBoundary);
                 std::vector<float> secondHalf(currInternalNode.begin() + splitBoundary + 1, currInternalNode.end());
@@ -80,11 +79,9 @@ void IndexManager::createBPlusTree(std::fstream &dataFile, unsigned totalNumBloc
                 currentNodes.push_back(lastNodeNumber);
                 lastNodeNumber++;
 
-                //become split node
                 currInternalNode = secondHalf;
             }
 
-            //push first key of each child node
             currInternalNode.push_back(prevLevel[i][0]);
         }
 
@@ -100,7 +97,6 @@ void IndexManager::createBPlusTree(std::fstream &dataFile, unsigned totalNumBloc
             std::vector<Byte> writeBuffer(BLOCK_SIZE,0);
             indexFile.write(reinterpret_cast<const char*>(writeBuffer.data()),BLOCK_SIZE);
             IndexView indexCursor(indexFile,currentNodes[i]);
-            //skip first key value as its the smallest value subtree
             for(unsigned j = 1; j < currentLevel[i].size(); ++j){
                 IndexEntry internalNodeIdxEntry{prevNodeNumbers[prevNodeidx],currentLevel[i][j]};
                 indexCursor[j-1] = internalNodeIdxEntry;
@@ -136,7 +132,7 @@ void IndexManager::createBPlusTree(std::fstream &dataFile, unsigned totalNumBloc
     // logFile.close();
 
     //create parent nodes
-    rootOffset = lastNodeNumber;
+    rootOffset = lastNodeNumber - 1;
 
     indexFile.flush();
     indexFile.close();
@@ -144,9 +140,11 @@ void IndexManager::createBPlusTree(std::fstream &dataFile, unsigned totalNumBloc
 
 std::vector<unsigned> IndexManager::rangeQuery(float lowerbound, float upperbound, std::string name) {
     std::fstream indexFile{name, indexFile.out | indexFile.in | indexFile.binary};
-    IndexView indexCursor(indexFile, rootOffset - 1); 
-    
+
     std::vector<unsigned> addresses{};
+    
+    NUMBER_OF_INDEX_BLOCKS_INDEX_ACCESS++;
+    IndexView indexCursor(indexFile, rootOffset); 
     
     IndexEntry curr = indexCursor[0];
     while(!curr.isLeaf) {
@@ -159,15 +157,19 @@ std::vector<unsigned> IndexManager::rangeQuery(float lowerbound, float upperboun
             idx++;
         }
         
+        unsigned nextBlockOffset = 0;
         if(idx == 0) { 
-            indexCursor.updateBlockOffset(curr.offset);
+            nextBlockOffset = curr.offset;
         } else if(idx >= indexCursor.numOfIndexEntries) {
-            indexCursor.updateBlockOffset(indexCursor.getNodeBackPointer());
+            nextBlockOffset = indexCursor.getNodeBackPointer();
         } else {
-            IndexEntry last =  indexCursor[idx-1];
-            indexCursor.updateBlockOffset(last.offset);
+            IndexEntry last = indexCursor[idx-1];
+            nextBlockOffset = last.offset;
         }
         
+        NUMBER_OF_INDEX_BLOCKS_INDEX_ACCESS++;
+        
+        indexCursor.updateBlockOffset(nextBlockOffset);
         curr = indexCursor[0];
     }
     
@@ -177,13 +179,14 @@ std::vector<unsigned> IndexManager::rangeQuery(float lowerbound, float upperboun
     while(!done) {
         while(leafIdx < indexCursor.numOfIndexEntries) { 
             curr = indexCursor[leafIdx];
-            
+
+            //first condition if reach end
             if((curr.key == 0 && curr.offset == 0) || curr.key > upperbound) {
                 done = true;
                 break;
             }
             
-            if(curr.key >= lowerbound) {
+            if(curr.key >= lowerbound && curr.key <= upperbound) {
                 addresses.push_back(curr.offset);
             }
             
@@ -195,8 +198,11 @@ std::vector<unsigned> IndexManager::rangeQuery(float lowerbound, float upperboun
             if(nextNode == 0) {
                 break;
             }
+            
+            NUMBER_OF_INDEX_BLOCKS_INDEX_ACCESS++;
+            
             indexCursor.updateBlockOffset(nextNode);
-            leafIdx = 0; 
+            leafIdx = 0;
         }
     }
     
