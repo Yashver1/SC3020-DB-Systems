@@ -3,12 +3,14 @@
 #include <iostream>
 #include <vector>
 #include "block.h"
+#include <cstring>
 
 // if isLeaf true, offset is direct offset
 struct IndexEntry {
   unsigned offset; //Byte level offset FOR leaf nodes and BLOCK level offset for internal node 4bytes //
   float key; //FG_PCT_HOME value 4 bytes
   bool isLeaf; // 4
+  IndexEntry() : offset(0), key(0), isLeaf(false) {};
   IndexEntry(unsigned offset, float key, bool isLeaf = false)
       : offset(offset), key(key), isLeaf(isLeaf) {};
   inline friend std::ostream &operator<<(std::ostream &os,
@@ -21,7 +23,6 @@ struct IndexEntry {
     }
     return os;
   }
-  IndexEntry() : offset(0), key(0), isLeaf(false) {};
 };
 
 class IndexView {
