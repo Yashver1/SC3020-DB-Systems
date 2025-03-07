@@ -1,6 +1,5 @@
 ========================================
 SC3020 DATABASE SYSTEM PRINCIPLES
-PROJECT 1: STORAGE AND INDEXING
 ========================================
 
 ============== TASK 1: STORAGE COMPONENT ==============
@@ -124,11 +123,11 @@ Range Query (FG_PCT_HOME from 0.6 to 0.9):
 - Number of Index Blocks Accessed: 3
 - Number of Data Blocks Accessed: 116
 - Average FG_PCT_HOME: 0.617874
-- B+ Tree Query Time: 0.872000 ms
+- B+ Tree Query Time: 0.894584 ms
 
 Brute Force Linear Scan:
 - Number of Records Retrieved: 238
 - Number of Data Blocks Accessed: 182
-- Linear Scan Time: 16.302917 ms
-- Speedup: 18.696006x
+- Linear Scan Time: 17.096750 ms
+- Speedup: 19.111397x
 

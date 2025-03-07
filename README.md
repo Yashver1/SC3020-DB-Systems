@@ -87,6 +87,7 @@ cmake --build build/ --target install
 ## Running the Project
 
 After building, you can run the main program from the project root:
+# IMPORTANT MAKE SURE TO RUN IN PROJECT ROOT AND ./build/main to fulfill relative file imports of game.txt, data,bin and index.bin
 
 ```bash
 ./build/main
