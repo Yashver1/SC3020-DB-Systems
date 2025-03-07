@@ -1,105 +1,146 @@
-### Design
+# SC3020 Database Systems Project
 
-Qns:
+This repository contains an implementation of fundamental database components including storage management, indexing with B+ trees, and query processing.
 
-Disk Implementation of storing records
-- parsing of schema
-- fixed or variable length records
-- dynamic block size?
-- system calls to use to write to disks
-- classes to use
-- traversing of block
-- structure of each record
+## Project Overview
 
-Implement Page Cacheing not priorirt
+This project implements several core database components:
+- Storage component for efficient record management
+- B+ tree indexing for fast data retrieval
+- Range query execution with performance analysis
 
-B+Tree Implementation on disk
-- iterative or bulk loading
-- order of insertion
-- number of keys in each node
-- traversing of tree
-- linear scan
+## Dependencies
 
-\
+- C++17 compatible compiler (GCC, Clang)
+- CMake (version 3.15 or higher)
+- Git (for fetching test dependencies)
 
-data structures We can use
+## Setup and Build Instructions
 
-SchemaTable
-key to Schemas
+## Installing Catch2 Testing Framework
 
-Block Data
-- maintains block data and some header information liek Blk size and also whether Index block 
-- offset fields
-- constructor takes in fostream and constructs block data
+This project uses Catch2 for unit testing. You'll need to have it installed before building the test suite.
 
-Record Sruct
-header
-    timestamp
-    length
-    schema point
+# Install via Homebrew
+brew install catch2
 
-fields
-(maybe does operator overload of a ostream for easy print)
+# Alternatively, for CMake integration
+git clone https://github.com/catchorg/Catch2.git
+cd Catch2
+cmake -Bbuild -H. -DBUILD_TESTING=OFF
+cmake --build build/ --target install
 
-Index Struct
-single bit to indicate leaf index
-pointer/offset from start of index file or data file if singel bit is true
-key
+### For macOS
 
+1. **Install dependencies:**
+   ```bash
+   brew install cmake
+   ```
 
+2. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/SC3020-DB-Systems.git
+   cd SC3020-DB-Systems
+   ```
 
-RecordView
-schema key 
-holds Record struct
-holds a block data 
-works as a view on the block byte data and traverses based on record dat
+3. **Configure the build:**
+   ```bash
+   cmake -S . -B build
+   ```
 
-IndexView
-schema key
-holds IndexStruct
-holds a Index block data
-works as a view ont he block byte data and traversess the Index Node .
+4. **Build the project:**
+   ```bash
+   cmake --build build
+   ```
 
-DiskManager handle these internal functionality
+### For Linux (Ubuntu/Debian)
 
-GuiManager handle the interface (cli) to call disk manaer gunctions
+1. **Install dependencies:**
+   ```bash
+   sudo apt update
+   sudo apt install build-essential cmake git
+   ```
 
+2. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/SC3020-DB-Systems.git
+   cd SC3020-DB-Systems
+   ```
 
+3. **Configure the build:**
+   ```bash
+   cmake -S . -B build
+   ```
 
-ALL OFfsets based on distance from start of file
+4. **Build the project:**
+   ```bash
+   cmake --build build
+   ```
 
+## Project Structure
 
-Actions
+- `include/` - Header files defining the components
+- `src/` - Implementation files
+- `test/` - Test cases using Catch2 framework
+- `build/` - Generated build files (created by CMake)
 
-First start with bulk loading
-1.create binary records and then store primary key in heap maybe for later. 
-while creating records if total size of current binary records just below block size, make one block and store in file
-2. after done all blocks start on b+tree index. we have sorted primary keys then we can start bulk loading
-(pack leaf node to full? since no insertions) and conduct bulk loading
-3. after btree created can store in another file
+## Running the Project
 
+After building, you can run the main program from the project root:
 
-On actions
-1.normal query we just fetch the first index block then create block data and therefore indexview.
-scan indexview until we can get the right pointer offset and fetch second index block baesd on index
-do this continuosly until data block found (known via isLeaf node) and then fetch from offset from data start
+```bash
+./build/main
+```
 
-2. on range query we uise linera scan. Do same thing until we reach first leaf node and then continously scan through leaf nodes til upper boound.
+To run the tests:
 
-For statistics
- 
-the number of index nodes the process (can keep a global staticcount on creation and descruction)
-accesses; 
+```bash
+./build/test/test
+```
 
-the number of data blocks the process accesses (gloval coutn also on each fetch query)
+## Components
 
-theaverage of “FG3_PCT_home” of the records that are returned (maintian running average)
+1. **Record System**
+   - Manages fixed-size records for NBA game data
+   - Implements efficient disk-based storage
 
-the
-running time of the retrieval process; (just use time stamp limb before and after fetching starst)
+2. **B+ Tree Index**
+   - Creates a B+ tree on the specified attribute (FG_PCT_home)
+   - Supports range queries and traversals
 
-the number of data blocks that
-would be accessed by a brute-force linear scan method (i.e., it scans
-the data blocks one by one) and its running time (for comparison)
+3. **Query Processing**
+   - Executes range queries with performance tracking
+   - Compares indexed access vs. brute force scanning
 
+## Troubleshooting
+
+### Missing Symbol Errors (Linker)
+
+If you encounter linker errors about missing symbols (e.g., `_NUMBER_OF_DATA_BLOCKS_BRUTE_FORCE`), ensure that:
+
+1. The `utility.cc` file properly defines all global variables declared in `utility.h`.
+2. The build system is correctly linking all components.
+
+### CMake Configuration Issues
+
+If CMake fails to configure:
+
+```bash
+# Clean the build directory and retry
+rm -rf build
+cmake -S . -B build
+```
+
+### Compiler Errors
+
+For compiler errors related to C++ standard compatibility:
+
+```bash
+# Explicitly specify C++17
+cmake -S . -B build -DCMAKE_CXX_STANDARD=17
+```
+
+## License
+
+[Your license information here]
 
