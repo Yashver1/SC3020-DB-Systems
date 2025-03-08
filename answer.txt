@@ -28,7 +28,7 @@ Statistics:
 Root Node Content Analysis:
   Raw entries in root node:
   - Key: 0.338, Offset: 0, IsLeaf: false
-  - Key: 0.353, Offset: 1, IsLeaf: false
+  - Key: 0.354, Offset: 1, IsLeaf: false
   - Key: 0.364, Offset: 2, IsLeaf: false
   - Key: 0.37, Offset: 3, IsLeaf: false
   - Key: 0.376, Offset: 4, IsLeaf: false
@@ -36,7 +36,7 @@ Root Node Content Analysis:
   - Key: 0.385, Offset: 6, IsLeaf: false
   - Key: 0.389, Offset: 7, IsLeaf: false
   - Key: 0.393, Offset: 8, IsLeaf: false
-  - Key: 0.396, Offset: 9, IsLeaf: false
+  - Key: 0.397, Offset: 9, IsLeaf: false
   - Key: 0.4, Offset: 10, IsLeaf: false
   - Key: 0.402, Offset: 11, IsLeaf: false
   - Key: 0.405, Offset: 12, IsLeaf: false
@@ -53,7 +53,7 @@ Root Node Content Analysis:
   - Key: 0.431, Offset: 23, IsLeaf: false
   - Key: 0.433, Offset: 24, IsLeaf: false
   - Key: 0.435, Offset: 25, IsLeaf: false
-  - Key: 0.437, Offset: 26, IsLeaf: false
+  - Key: 0.438, Offset: 26, IsLeaf: false
   - Key: 0.439, Offset: 27, IsLeaf: false
   - Key: 0.441, Offset: 28, IsLeaf: false
   - Key: 0.443, Offset: 29, IsLeaf: false
@@ -68,20 +68,20 @@ Root Node Content Analysis:
   - Key: 0.46, Offset: 38, IsLeaf: false
   - Key: 0.462, Offset: 39, IsLeaf: false
   - Key: 0.463, Offset: 40, IsLeaf: false
-  - Key: 0.465, Offset: 41, IsLeaf: false
+  - Key: 0.466, Offset: 41, IsLeaf: false
   - Key: 0.467, Offset: 42, IsLeaf: false
   - Key: 0.469, Offset: 43, IsLeaf: false
   - Key: 0.471, Offset: 44, IsLeaf: false
   - Key: 0.473, Offset: 45, IsLeaf: false
   - Key: 0.474, Offset: 46, IsLeaf: false
   - Key: 0.476, Offset: 47, IsLeaf: false
-  - Key: 0.478, Offset: 48, IsLeaf: false
+  - Key: 0.479, Offset: 48, IsLeaf: false
   - Key: 0.481, Offset: 49, IsLeaf: false
   - Key: 0.482, Offset: 50, IsLeaf: false
   - Key: 0.485, Offset: 51, IsLeaf: false
   - Key: 0.487, Offset: 52, IsLeaf: false
   - Key: 0.488, Offset: 53, IsLeaf: false
-  - Key: 0.492, Offset: 54, IsLeaf: false
+  - Key: 0.493, Offset: 54, IsLeaf: false
   - Key: 0.494, Offset: 55, IsLeaf: false
   - Key: 0.494, Offset: 56, IsLeaf: false
   - Key: 0.5, Offset: 57, IsLeaf: false
@@ -89,28 +89,28 @@ Root Node Content Analysis:
   - Key: 0.5, Offset: 59, IsLeaf: false
   - Key: 0.506, Offset: 60, IsLeaf: false
   - Key: 0.507, Offset: 61, IsLeaf: false
-  - Key: 0.511, Offset: 62, IsLeaf: false
+  - Key: 0.512, Offset: 62, IsLeaf: false
   - Key: 0.513, Offset: 63, IsLeaf: false
-  - Key: 0.516, Offset: 64, IsLeaf: false
+  - Key: 0.517, Offset: 64, IsLeaf: false
   - Key: 0.519, Offset: 65, IsLeaf: false
   - Key: 0.523, Offset: 66, IsLeaf: false
   - Key: 0.526, Offset: 67, IsLeaf: false
-  - Key: 0.529, Offset: 68, IsLeaf: false
-  - Key: 0.533, Offset: 69, IsLeaf: false
+  - Key: 0.53, Offset: 68, IsLeaf: false
+  - Key: 0.534, Offset: 69, IsLeaf: false
   - Key: 0.538, Offset: 70, IsLeaf: false
-  - Key: 0.543, Offset: 71, IsLeaf: false
-  - Key: 0.549, Offset: 72, IsLeaf: false
+  - Key: 0.544, Offset: 71, IsLeaf: false
+  - Key: 0.55, Offset: 72, IsLeaf: false
   - Key: 0.556, Offset: 73, IsLeaf: false
   - Key: 0.563, Offset: 74, IsLeaf: false
-  - Key: 0.574, Offset: 75, IsLeaf: false
-  - Key: 0.592, Offset: 76, IsLeaf: false
+  - Key: 0.575, Offset: 75, IsLeaf: false
+  - Key: 0.594, Offset: 76, IsLeaf: false
   Root back pointer: 77
 
 B+ Tree Structure Summary:
 - Parameter n (max entries per node): 341
 - Number of Nodes: 79
 - Number of Levels: 2
-- Root Node Keys: 0.338 0.353 0.364 0.37 0.376 0.381 0.385 0.389 0.393 0.396 0.4 0.402 0.405 0.408 0.411 0.413 0.416 0.418 0.42 0.423 0.425 0.427 0.429 0.431 0.433 0.435 0.437 0.439 0.441 0.443 0.444 0.447 0.449 0.451 0.452 0.455 0.456 0.458 0.46 0.462 0.463 0.465 0.467 0.469 0.471 0.473 0.474 0.476 0.478 0.481 0.482 0.485 0.487 0.488 0.492 0.494 0.494 0.5 0.5 0.5 0.506 0.507 0.511 0.513 0.516 0.519 0.523 0.526 0.529 0.533 0.538 0.543 0.549 0.556 0.563 0.574 0.592
+- Root Node Keys: 0.338 0.354 0.364 0.37 0.376 0.381 0.385 0.389 0.393 0.397 0.4 0.402 0.405 0.408 0.411 0.413 0.416 0.418 0.42 0.423 0.425 0.427 0.429 0.431 0.433 0.435 0.438 0.439 0.441 0.443 0.444 0.447 0.449 0.451 0.452 0.455 0.456 0.458 0.46 0.462 0.463 0.466 0.467 0.469 0.471 0.473 0.474 0.476 0.479 0.481 0.482 0.485 0.487 0.488 0.493 0.494 0.494 0.5 0.5 0.5 0.506 0.507 0.512 0.513 0.517 0.519 0.523 0.526 0.53 0.534 0.538 0.544 0.55 0.556 0.563 0.575 0.594
 
 Node types distribution:
 - Leaf nodes: 78
@@ -123,11 +123,11 @@ Range Query (FG_PCT_HOME from 0.6 to 0.9):
 - Number of Index Blocks Accessed: 3
 - Number of Data Blocks Accessed: 116
 - Average FG_PCT_HOME: 0.617874
-- B+ Tree Query Time: 0.894584 ms
+- B+ Tree Query Time: 0.860459 ms
 
 Brute Force Linear Scan:
 - Number of Records Retrieved: 238
 - Number of Data Blocks Accessed: 182
-- Linear Scan Time: 17.096750 ms
-- Speedup: 19.111397x
+- Linear Scan Time: 17.058083 ms
+- Speedup: 19.824400x
 

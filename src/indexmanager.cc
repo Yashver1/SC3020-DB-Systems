@@ -15,15 +15,19 @@ void IndexManager::createBPlusTree(std::fstream &dataFile, unsigned totalNumBloc
     std::fstream indexFile(name, indexFile.binary | indexFile.in | indexFile.out | indexFile.trunc);
     RecordView recordCursor{dataFile,0};
 
-   //TODO REMOVE THE RECORDS THAT WERE ZERO INITLAISED CAUSE OF MISSING
     for(unsigned i = 0; i < totalNumBlocks; ++i){
         recordCursor.updateBlkOffset(i);
         for (unsigned j = 0; j < recordCursor.numOfRecords; ++j){
             Record curr = recordCursor[j];
+            //ignore empty records used for padding
+            if(curr.Header.offset == 0 && curr.TEAM_ID_HOME == 0 && curr.FG_PCT_HOME == 0){
+                continue;
+            }
             std::pair<float,unsigned> valAndPointer{curr.FG_PCT_HOME,curr.Header.offset};
             entries.push(valAndPointer);
         }
     }
+
     debug_print("Total num of entries : " << entries.size());
     unsigned maxN = (static_cast<unsigned int>(BLOCK_SIZE) - sizeof(unsigned))/sizeof(IndexEntry);
     unsigned minN = (maxN+1) / 2;
@@ -209,5 +213,3 @@ std::vector<unsigned> IndexManager::rangeQuery(float lowerbound, float upperboun
     indexFile.close();
     return addresses;
 }
-
-//TODO ensure last node of leaf node is min of n+1/2

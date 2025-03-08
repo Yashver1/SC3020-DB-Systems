@@ -71,7 +71,6 @@ class IndexView {
     block.loadAt(blkOffset);
   }
 
-  //TODO this should change the nearest last pointer to the end, not the actl end pointer
   void updateNodeBackPointer(unsigned offset){
     std::vector<Byte> temp;
     temp.resize(sizeof(unsigned));
