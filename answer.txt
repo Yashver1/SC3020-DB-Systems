@@ -123,11 +123,11 @@ Range Query (FG_PCT_HOME from 0.6 to 0.9):
 - Number of Index Blocks Accessed: 3
 - Number of Data Blocks Accessed: 116
 - Average FG_PCT_HOME: 0.617874
-- B+ Tree Query Time: 0.860459 ms
+- B+ Tree Query Time: 0.846417 ms
 
 Brute Force Linear Scan:
 - Number of Records Retrieved: 238
 - Number of Data Blocks Accessed: 182
-- Linear Scan Time: 17.058083 ms
-- Speedup: 19.824400x
+- Linear Scan Time: 17.465666 ms
+- Speedup: 20.634824x
 

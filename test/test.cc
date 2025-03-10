@@ -1,7 +1,8 @@
 #define CATCH_CONFIG_MAIN
 
 #include <diskmanager.h>
-
+#include "catch2/catch.hpp"
+#include <queue>
 #include <array>
 #include <bitset>
 #include <cstring>
@@ -11,7 +12,6 @@
 #include <vector>
 #include "indexmanager.h"
 #include "block.h"
-#include "catch2/catch.hpp"
 #include "index.h"
 #include "record.h"
 #include "utility.h"
