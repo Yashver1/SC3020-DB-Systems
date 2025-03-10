@@ -80,7 +80,7 @@ void DiskManager::txtToBinary(std::fstream &input, bool header,
 
   this->blkMapCount.insert({name, blkCount});
   outputFile.close();
-}
+};
 
 std::vector<Record> DiskManager::linearScan(float lowerBound, float upperBound, std::string name) {
     std::fstream inputFile{name, inputFile.out | inputFile.in | inputFile.binary};
@@ -103,7 +103,7 @@ std::vector<Record> DiskManager::linearScan(float lowerBound, float upperBound, 
     
     inputFile.close();
     return results;
-}
+};
 
 Record DiskManager::query(unsigned address , std::string name ){
 
